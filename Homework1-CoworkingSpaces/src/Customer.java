@@ -1,6 +1,7 @@
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Objects;
 import java.util.Scanner;
 import java.util.UUID;
 
@@ -23,29 +24,44 @@ public class Customer {
 
     }
 
-    public boolean browseAvailableSpaces() {
+    public ArrayList browseAvailableSpaces() {
         //conversion WORKING SPACES into Stream-collection, that executes next method
         ArrayList<Workspace> availableWorkspaces = new ArrayList<Workspace>(this.workspaceArray.stream()
-                .filter(item -> item.availabilityStatus)
+                .filter(item -> item.getAvailabilityStatus())
                 .toList());
 
         if (availableWorkspaces.isEmpty()) {
-            System.out.println("There are no coworking spaces");
-            return false;
+            System.out.println("There are no available spaces");
+            return new ArrayList(); // empty array
         }
 
         System.out.println("Here are available coworking spaces for you:");
-        for (Workspace item : availableWorkspaces) {
-            System.out.println(item);
+        System.out.println(availableWorkspaces);
+//        for (Workspace item : availableWorkspaces) {
+//            System.out.println(item);
+        return availableWorkspaces;
+    }
+
+    public boolean checkPresence(int i, ArrayList<Workspace> availableWorkspaces) {
+        for (Workspace workspace: availableWorkspaces) {
+            if (workspace.getId() == i) {
+                return true;
+            };
         }
-        return true;
+        System.out.println("No such workspace in a list of available workspaces. Please enter another ID: ");
+        return false;
     }
 
     public void makeAReservation() {
-        if (browseAvailableSpaces()) {
+        ArrayList<Workspace> availableWorkspaces = browseAvailableSpaces();
+        if (!Objects.equals(availableWorkspaces, new ArrayList<>())) { //shows available spaces(with id+messages) and returns true/false
             System.out.println("Choose the id of any available space: ");
             System.out.println("id - ");
-            int id = this.scanner.nextInt();
+            int id;
+            do {
+                id = this.scanner.nextInt();
+            } while (!checkPresence(id, availableWorkspaces));
+
             System.out.println("Type in all data to make a reservation: ");
             System.out.println("your name - ");
             String name = this.scanner.next();
@@ -55,13 +71,13 @@ public class Customer {
             String end = this.scanner.next();
 
             for (Workspace item : this.workspaceArray) {
-                if (item.id == id) {
-                    DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy"); //create a format of date
+                if (item.getId() == id) {
+                    DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy");
                     UUID uniqueKey = UUID.randomUUID();
-                    Reservation reservation = new Reservation(uniqueKey, id, item.type, name,
+                    Reservation reservation = new Reservation(uniqueKey, id, item.getType(), name,
                         LocalDate.parse(start, formatter), LocalDate.parse(end, formatter),
-                        item.price);
-                    item.availabilityStatus = false;
+                        item.getPrice());
+                    item.setAvailabilityStatus(false);
                     this.reservationsArray.add(reservation);
                 }
             }
@@ -81,8 +97,12 @@ public class Customer {
         else {
             System.out.println("Here are your reservations: ");
             for (Reservation item: this.reservationsArray) {
-                if (item.name.equals(name)) {
+                if (item.getName().equals(name)) {
                     System.out.println(item);
+                }
+                else {
+                    System.out.println("You have no reservations yet");
+                    return false;
                 }
             }
             return true;
@@ -90,7 +110,7 @@ public class Customer {
     }
 
     public void cancelMyReservation() {
-        if (!viewMyReservations()) {
+        if (!viewMyReservations()) { //shows reservations(with id+messages) and returns true/false
             return;
         }
 
@@ -101,7 +121,7 @@ public class Customer {
         //conversion ALL RESERVATIONS into Stream-collection, that executes next methods 1 by 1
         // and creates a var reservationToBeCancelled for further action(Workspace..)
         Reservation reservationToBeCancelled = this.reservationsArray.stream()
-                .filter(item -> item.id.toString().equals(id))
+                .filter(item -> item.getId().toString().equals(id)) //uuid -> id(string) and compares
                 .findFirst() // finds 1st one reservation and writes to reservationToBeCancelled
                 .orElse(null); //if nothing was found - reservationToBeCancelled = null
 
@@ -110,12 +130,12 @@ public class Customer {
             return;
         }
         // this line is enough to remove item(without previous 4 lines)
-        this.reservationsArray.removeIf(item -> item.id.toString().equals(id));
+        this.reservationsArray.removeIf(item -> item.getId().toString().equals(id));
 
 
         for (Workspace item : this.workspaceArray) {
-            if (item.id == reservationToBeCancelled.workspaceId) {
-                item.availabilityStatus = true;
+            if (item.getId() == reservationToBeCancelled.getWorkspaceId()) {
+                item.setAvailabilityStatus(true);
             }
         }
         System.out.println("Your reservation was cancelled successfully!");

@@ -1,3 +1,4 @@
+import java.sql.SQLOutput;
 import java.util.ArrayList;
 import java.util.Scanner;
 /**
@@ -15,10 +16,24 @@ public class Admin {
          this.scanner = scanner;
     }
 
+    public boolean checkNonUniquiness(int i) { //check the uniqueness of ID
+        for (Workspace workspace: workspaceArray) {
+            if (workspace.getId() == i) {
+                System.out.println("This ID is already occupied. Please enter another one: ");
+                return true;
+            };
+        }
+        return false;
+    }
+
     public void addCoworkingSpace() {
         System.out.println("Type in the new coworking space data: ");
         System.out.println("id(number) - ");
-        int id = this.scanner.nextInt();
+        int id;
+        do {
+            id = this.scanner.nextInt();
+        } while (checkNonUniquiness(id));
+
         System.out.println("type of coworking(1 word) - ");
         String type = this.scanner.next();
         this.scanner.nextLine();
@@ -45,15 +60,12 @@ public class Admin {
     }
 
     public void removeCoworkingSpace() {
-        if (browseCoworkingSpaces()) {
+        if (browseCoworkingSpaces()) { //shows all coworkings(with id) and returns true/false
             System.out.println("Type in the id of coworking space you want to remove: ");
             System.out.println("id(number) - ");
             int id = this.scanner.nextInt();
-            for (Workspace item : this.workspaceArray) {
-                if (item.id == id) {
-                    this.workspaceArray.remove(item);
-                }
-            }
+            this.workspaceArray.removeIf(item -> item.getId()==id);
+            this.reservationsArray.removeIf(item -> item.getWorkspaceId()==id);
             System.out.printf("Coworking space %d removed successfully", id);
         }
     }
