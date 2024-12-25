@@ -13,26 +13,30 @@ import java.util.UUID;
  * - see their reservations and cancel them by selecting the reservation ID
  */
 public class Customer {
+    FileSaverReader fileSaverReader;
     Scanner scanner;
     ArrayList<Workspace> workspaceArray;
     ArrayList<Reservation> reservationsArray;
 
-    public Customer(Scanner scanner, ArrayList<Workspace> workspaceArray, ArrayList<Reservation> reservationsArray) {
+    public Customer(FileSaverReader fileSaverReader, Scanner scanner, ArrayList<Workspace> workspaceArray, ArrayList<Reservation> reservationsArray) {
+        this.fileSaverReader = fileSaverReader;
         this.scanner = scanner;
         this.workspaceArray = workspaceArray;
         this.reservationsArray = reservationsArray;
 
     }
 
-    public ArrayList browseAvailableSpaces() {
+    public ArrayList<Workspace> browseAvailableSpaces() {
         //conversion WORKING SPACES into Stream-collection, that executes next method
+        this.workspaceArray = this.fileSaverReader.readWorkspacesFromFile();
+
         ArrayList<Workspace> availableWorkspaces = new ArrayList<Workspace>(this.workspaceArray.stream()
                 .filter(item -> item.getAvailabilityStatus())
                 .toList());
 
         if (availableWorkspaces.isEmpty()) {
             System.out.println("There are no available spaces");
-            return new ArrayList(); // empty array
+            return new ArrayList<Workspace>(); // empty array
         }
 
         System.out.println("Here are available coworking spaces for you:");
@@ -79,6 +83,8 @@ public class Customer {
                         item.getPrice());
                     item.setAvailabilityStatus(false);
                     this.reservationsArray.add(reservation);
+                    this.fileSaverReader.saveReservationsToFile(this.reservationsArray);
+                    this.fileSaverReader.saveWorkspacesToFile(this.workspaceArray);
                 }
             }
             System.out.println("New reservation was made successfully!");
@@ -86,9 +92,11 @@ public class Customer {
     }
 
     public boolean viewMyReservations() {
+        this.reservationsArray = this.fileSaverReader.readReservationsFromFile();
+        this.workspaceArray = this.fileSaverReader.readWorkspacesFromFile();
         System.out.println("Type in your name: ");
         System.out.println("name - ");
-        String name = this.scanner.nextLine();
+        String name = this.scanner.next();
 
         if (this.reservationsArray.isEmpty()) {
             System.out.println("You have no reservations yet");
@@ -138,6 +146,8 @@ public class Customer {
                 item.setAvailabilityStatus(true);
             }
         }
+        this.fileSaverReader.saveReservationsToFile(this.reservationsArray);
+        this.fileSaverReader.saveWorkspacesToFile(this.workspaceArray);
         System.out.println("Your reservation was cancelled successfully!");
     }
-    }
+}

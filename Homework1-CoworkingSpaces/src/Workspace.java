@@ -1,4 +1,6 @@
-public class Workspace {
+import java.io.Serializable;
+
+public class Workspace implements Serializable {
     /**
      * Display a list of coworking spaces with details
      * (ex. id, type (open space, private room, etc.),
