@@ -31,7 +31,7 @@ public class MainMenu {
 
     public boolean processUserInput() {
         int mainOption = this.scanner.nextInt();
-        this.scanner.nextLine();
+        //this.scanner.nextLine();
 
         // Escape option
         if (mainOption == 3) {
@@ -48,10 +48,11 @@ public class MainMenu {
                 Input 1, if you want to add a new coworking space
                 Input 2, if you want to remove a coworking space
                 Input 3, if you want view all reservations
+                Input 4, if you want to update a coworking space
+                Input 5, if you want to remove a reservation
                 """);
 
             int adminOption = this.scanner.nextInt();
-            //this.scanner.nextLine();
 
             Admin admin = new Admin(this.fileSaverReader, this.scanner, this.workspaceArray, this.reservationsArray);
             if (adminOption == 1) {
@@ -62,6 +63,12 @@ public class MainMenu {
             }
             else if (adminOption == 3)  {
                 admin.viewAllReservations();
+            }
+            else if (adminOption == 4)  {
+                admin.updateCoworkingSpace();
+            }
+            else if (adminOption == 5)  {
+                admin.removeReservation();
             }
         }
 

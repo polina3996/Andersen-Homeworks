@@ -8,7 +8,16 @@ public class FileSaverReader {
     public void saveWorkspacesToFile(ArrayList<Workspace> workspaceArray){
         try (ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream("workspaces.ser"))) {
             oos.writeObject(workspaceArray);
-            System.out.println("Array serialized successfully.");
+            //System.out.println("Array serialized successfully.");
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void saveReservationsToFile(ArrayList<Reservation> reservationArray){
+        try (ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream("reservations.ser"))) {
+            oos.writeObject(reservationArray);
+            //System.out.println("Array serialized successfully.");
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -20,21 +29,9 @@ public class FileSaverReader {
         } catch (FileNotFoundException e){
             return new ArrayList<Workspace>();
         }
-        catch (IOException e) {
+        catch (IOException | ClassNotFoundException e) {
             e.printStackTrace();
             throw new RuntimeException(e);
-        } catch (ClassNotFoundException e) {
-            e.printStackTrace();
-            throw new RuntimeException(e);
-        }
-    }
-
-    public void saveReservationsToFile(ArrayList<Reservation> reservationArray){
-        try (ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream("reservations.ser"))) {
-            oos.writeObject(reservationArray);
-            System.out.println("Array serialized successfully.");
-        } catch (IOException e) {
-            e.printStackTrace();
         }
     }
 
@@ -43,13 +40,10 @@ public class FileSaverReader {
             return (ArrayList<Reservation>) ois.readObject();
         } catch (FileNotFoundException e){
             return new ArrayList<Reservation>();
-        } catch (IOException e) {
+        } catch (IOException | ClassNotFoundException e) {
             e.printStackTrace();
             throw new RuntimeException(e);
 
-        } catch (ClassNotFoundException e) {
-            e.printStackTrace();
-            throw new RuntimeException(e);
         }
     }
 }
