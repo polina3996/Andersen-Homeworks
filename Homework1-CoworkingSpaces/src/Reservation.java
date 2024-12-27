@@ -1,8 +1,9 @@
+import java.io.Serializable;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.UUID;
 
-public class Reservation {
+public class Reservation implements Serializable {
     /**
      * display all reservations
      */
