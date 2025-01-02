@@ -47,4 +47,19 @@ public class CheckMethods {
         }
         return false;
     }
+
+
+    /**
+     * Checks whether the given ArrayList is empty or not or throws custom exception
+     * @param arr: ArrayList(Coworking Spaces or Reservations)
+     * @param name: name of given parameter("coworking spaces" or "reservations")
+     * @return boolean
+     */
+    public static <T> boolean checkEmptiness(ArrayList<T> arr, String name) {
+        String message = String.format("There are no %s yet", name);
+        if (arr == null || arr.isEmpty()) {
+            throw new CheckEmptinessException(message);
+        }
+       return false;
+    }
 }
