@@ -30,19 +30,22 @@ public class Customer {
                 .filter(item -> item.getAvailabilityStatus())
                 .toList());
 
-        if (availableWorkspaces.isEmpty()) {
-            System.out.println("There are no available spaces");
-            return new ArrayList<Workspace>(); // empty array
+        try {
+            CheckMethods.checkEmptiness(availableWorkspaces, "available workspaces");
+            System.out.println("Here are available coworking spaces for you:");
+            System.out.println(availableWorkspaces);
+            return availableWorkspaces;
         }
-
-        System.out.println("Here are available coworking spaces for you:");
-        System.out.println(availableWorkspaces);
-        return availableWorkspaces;
+        catch (CheckEmptinessException e){
+            System.out.println(e.getMessage());
+            return new ArrayList<Workspace>(); // empty array}
+        }
     }
 
     public void makeAReservation() {
         ArrayList<Workspace> availableWorkspaces = browseAvailableSpaces();//shows available spaces(with id+messages) and returns true/false
-        if (!Objects.equals(availableWorkspaces, new ArrayList<>())) {
+        try {
+            CheckMethods.checkEmptiness(availableWorkspaces, "available workspaces");
             System.out.println("Choose the id of any available space: ");
             System.out.println("id - ");
             int id;
@@ -78,8 +81,8 @@ public class Customer {
                     DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy");
                     UUID uniqueKey = UUID.randomUUID();
                     Reservation reservation = new Reservation(uniqueKey, id, item.getType(), name,
-                        LocalDate.parse(start, formatter), LocalDate.parse(end, formatter),
-                        item.getPrice());
+                            LocalDate.parse(start, formatter), LocalDate.parse(end, formatter),
+                            item.getPrice());
                     this.reservationsArray.add(reservation);
                     item.setAvailabilityStatus(false);
                     this.fileSaverReader.saveReservationsToFile(this.reservationsArray);
@@ -87,6 +90,9 @@ public class Customer {
                 }
             }
             System.out.println("New reservation was made successfully!");
+        }
+        catch (CheckEmptinessException e){
+            System.out.println(e.getMessage());
         }
     }
 
@@ -97,11 +103,8 @@ public class Customer {
         System.out.println("name - ");
         String name = this.scanner.next();
 
-        if (this.reservationsArray.isEmpty()) {
-            System.out.println("You have no reservations yet");
-            return false;
-        }
-        else {
+        try {
+            CheckMethods.checkEmptiness(this.reservationsArray, "reservations");
             System.out.println("Here are your reservations: ");
             for (Reservation item: this.reservationsArray) {
                 if (item.getName().equals(name)) {
@@ -113,6 +116,10 @@ public class Customer {
                 }
             }
             return true;
+        }
+        catch (CheckEmptinessException e){
+            System.out.println(e.getMessage());
+            return false;
         }
     }
 
