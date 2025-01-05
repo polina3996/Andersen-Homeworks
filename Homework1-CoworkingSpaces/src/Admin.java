@@ -11,13 +11,11 @@ public class Admin {
     ArrayList<Workspace> workspaceArray;
     ArrayList<Reservation> reservationsArray;
 
-    public Admin(FileSaverReader fileSaverReader, Scanner scanner,
-                 ArrayList<Workspace> workspaceArray,
-                 ArrayList<Reservation> reservationsArray) {
+    public Admin(FileSaverReader fileSaverReader, Scanner scanner) {
          this.fileSaverReader = fileSaverReader;
          this.scanner = scanner;
-         this.workspaceArray = workspaceArray;
-         this.reservationsArray = reservationsArray;
+         this.workspaceArray = this.fileSaverReader.readWorkspacesFromFile() ;
+         this.reservationsArray = this.fileSaverReader.readReservationsFromFile();
     }
 
     public void addCoworkingSpace() {
@@ -66,7 +64,6 @@ public class Admin {
 
 
     public boolean browseCoworkingSpaces(){
-        this.workspaceArray = this.fileSaverReader.readWorkspacesFromFile();
         try {
             CheckMethods.checkEmptiness(this.workspaceArray, "coworking spaces");
             System.out.println("Here are all coworking spaces :");
@@ -116,7 +113,6 @@ public class Admin {
 
 
     public boolean viewAllReservations() {
-        this.reservationsArray = this.fileSaverReader.readReservationsFromFile();
         try {
             CheckMethods.checkEmptiness(this.reservationsArray, "reservations");
             System.out.println("Here are all reservations :");

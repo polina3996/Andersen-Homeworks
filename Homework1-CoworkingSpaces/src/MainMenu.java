@@ -6,19 +6,16 @@ import java.util.Scanner;
  */
 public class MainMenu {
     Scanner scanner;
-    ArrayList<Workspace> workspaceArray;
-    ArrayList<Reservation> reservationsArray;
     FileSaverReader fileSaverReader;
 
     public MainMenu(Scanner scanner){
         this.scanner = scanner;
-        this.workspaceArray = new ArrayList<Workspace>();
-        this.reservationsArray = new ArrayList<Reservation>();
         this.fileSaverReader = new FileSaverReader();
     }
 
     public void showMainMenu() {
         System.out.println("""
+                
                 -------------------------
                 Welcome, my dear user!
                 Main Menu
@@ -31,7 +28,6 @@ public class MainMenu {
 
     public boolean processUserInput() {
         int mainOption = this.scanner.nextInt();
-        //this.scanner.nextLine();
 
         // Escape option
         if (mainOption == 3) {
@@ -54,7 +50,7 @@ public class MainMenu {
 
             int adminOption = this.scanner.nextInt();
 
-            Admin admin = new Admin(this.fileSaverReader, this.scanner, this.workspaceArray, this.reservationsArray);
+            Admin admin = new Admin(this.fileSaverReader, this.scanner);
             if (adminOption == 1) {
                 admin.addCoworkingSpace();
             }
@@ -85,8 +81,7 @@ public class MainMenu {
                 """);
 
             int userOption = this.scanner.nextInt();
-            //this.scanner.nextLine();
-            Customer customer = new Customer(this.fileSaverReader, this.scanner, this.workspaceArray, this.reservationsArray);
+            Customer customer = new Customer(this.fileSaverReader, this.scanner);
 
             if (userOption ==1) {
                 customer.browseAvailableSpaces();

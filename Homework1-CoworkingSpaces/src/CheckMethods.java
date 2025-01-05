@@ -27,9 +27,9 @@ public class CheckMethods {
             if (workspace.getId() == id) {
                 return true;
             };
-            throw new NonPresentException("No such coworking space. Please enter another one: ");
+
         }
-        return false;
+        throw new NonPresentException("No such coworking space. Please enter another one: ");
     }
 
     /**

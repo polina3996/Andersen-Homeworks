@@ -15,16 +15,14 @@ public class Customer {
     ArrayList<Workspace> workspaceArray;
     ArrayList<Reservation> reservationsArray;
 
-    public Customer(FileSaverReader fileSaverReader, Scanner scanner, ArrayList<Workspace> workspaceArray, ArrayList<Reservation> reservationsArray) {
+    public Customer(FileSaverReader fileSaverReader, Scanner scanner) {
         this.fileSaverReader = fileSaverReader;
         this.scanner = scanner;
-        this.workspaceArray = workspaceArray;
-        this.reservationsArray = reservationsArray;
+        this.workspaceArray = this.fileSaverReader.readWorkspacesFromFile();
+        this.reservationsArray = this.fileSaverReader.readReservationsFromFile();
     }
 
     public ArrayList<Workspace> browseAvailableSpaces() {
-        this.workspaceArray = this.fileSaverReader.readWorkspacesFromFile();
-
         //conversion WORKING SPACES into Stream-collection, that executes next method
         ArrayList<Workspace> availableWorkspaces = new ArrayList<Workspace>(this.workspaceArray.stream()
                 .filter(item -> item.getAvailabilityStatus())
@@ -38,12 +36,15 @@ public class Customer {
         }
         catch (CheckEmptinessException e){
             System.out.println(e.getMessage());
-            return new ArrayList<Workspace>(); // empty array}
+            return new ArrayList<Workspace>(); // empty array
         }
     }
 
     public void makeAReservation() {
         ArrayList<Workspace> availableWorkspaces = browseAvailableSpaces();//shows available spaces(with id+messages) and returns true/false
+        if (availableWorkspaces == null || availableWorkspaces.isEmpty()){
+            return;
+        }
         try {
             CheckMethods.checkEmptiness(availableWorkspaces, "available workspaces");
             System.out.println("Choose the id of any available space: ");
@@ -70,10 +71,10 @@ public class Customer {
             System.out.println("your name - ");
             String name = this.scanner.next();
             System.out.println("date of start in dd-mm-yyyy format - ");
-            // next time: process Exception if wrong format
+            // TODO: process Exception if wrong format
             String start = this.scanner.next();
             System.out.println("date of end in dd-mm-yyyy format - ");
-            //next time: process Exception if wrong format
+            // TODO: process Exception if wrong format
             String end = this.scanner.next();
 
             for (Workspace item : this.workspaceArray) {
@@ -97,8 +98,6 @@ public class Customer {
     }
 
     public boolean viewMyReservations() {
-        this.reservationsArray = this.fileSaverReader.readReservationsFromFile();
-        this.workspaceArray = this.fileSaverReader.readWorkspacesFromFile();
         System.out.println("Type in your name: ");
         System.out.println("name - ");
         String name = this.scanner.next();
