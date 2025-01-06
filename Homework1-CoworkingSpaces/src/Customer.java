@@ -18,14 +18,13 @@ public class Customer {
     public Customer(FileSaverReader fileSaverReader, Scanner scanner) {
         this.fileSaverReader = fileSaverReader;
         this.scanner = scanner;
-        this.workspaceArray = this.fileSaverReader.readWorkspacesFromFile();
-        this.reservationsArray = this.fileSaverReader.readReservationsFromFile();
+        this.workspaceArray = this.fileSaverReader.readFromFile("workspaces.ser");
+        this.reservationsArray = this.fileSaverReader.readFromFile("reservations.ser");
     }
 
     public ArrayList<Workspace> browseAvailableSpaces() {
-        //conversion WORKING SPACES into Stream-collection, that executes next method
         ArrayList<Workspace> availableWorkspaces = new ArrayList<Workspace>(this.workspaceArray.stream()
-                .filter(item -> item.getAvailabilityStatus())
+                .filter(Workspace::getAvailabilityStatus)
                 .toList());
 
         try {
@@ -86,8 +85,8 @@ public class Customer {
                             item.getPrice());
                     this.reservationsArray.add(reservation);
                     item.setAvailabilityStatus(false);
-                    this.fileSaverReader.saveReservationsToFile(this.reservationsArray);
-                    this.fileSaverReader.saveWorkspacesToFile(this.workspaceArray);
+                    this.fileSaverReader.saveToFile(this.reservationsArray, "reservations.ser");
+                    this.fileSaverReader.saveToFile(this.workspaceArray, "workspaces.ser");
                 }
             }
             System.out.println("New reservation was made successfully!");
@@ -142,19 +141,17 @@ public class Customer {
             break; // coworking exists -> no exception -> stops asking for id and accepts last one
         }
 
-        //conversion ALL RESERVATIONS into Stream-collection, that executes next methods 1 by 1
-        // and creates a var reservationToBeCancelled for further action(Workspace..)
         String finalId = id;
         Reservation reservationToBeCancelled = this.reservationsArray.stream()
-                .filter(item -> item.getId().toString().equals(finalId)) //uuid -> id(string) and compares
-                .findFirst() // finds 1st one reservation and writes to reservationToBeCancelled
-                .orElse(null); //if nothing was found - reservationToBeCancelled = null
+                .filter(item -> item.getId().toString().equals(finalId))
+                .findFirst()
+                .orElse(null);
 
         if (reservationToBeCancelled == null) {
             System.out.println("No reservations with such id");
             return;
         }
-        // this line is enough to remove item(without previous 4 lines)
+
         String finalId1 = id;
         this.reservationsArray.removeIf(item -> item.getId().toString().equals(finalId1));
 
@@ -164,8 +161,8 @@ public class Customer {
                 item.setAvailabilityStatus(true);
             }
         }
-        this.fileSaverReader.saveReservationsToFile(this.reservationsArray);
-        this.fileSaverReader.saveWorkspacesToFile(this.workspaceArray);
+        this.fileSaverReader.saveToFile(this.reservationsArray, "reservations.ser");
+        this.fileSaverReader.saveToFile(this.workspaceArray, "workspaces.ser");
         System.out.println("Your reservation was cancelled successfully!");
     }
 }

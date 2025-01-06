@@ -1,5 +1,6 @@
 import java.util.ArrayList;
 import java.util.InputMismatchException;
+import java.util.Optional;
 import java.util.Scanner;
 /**
  * Manages spaces and view all bookings
@@ -14,8 +15,8 @@ public class Admin {
     public Admin(FileSaverReader fileSaverReader, Scanner scanner) {
          this.fileSaverReader = fileSaverReader;
          this.scanner = scanner;
-         this.workspaceArray = this.fileSaverReader.readWorkspacesFromFile() ;
-         this.reservationsArray = this.fileSaverReader.readReservationsFromFile();
+         this.workspaceArray = this.fileSaverReader.readFromFile("workspaces.ser") ;
+         this.reservationsArray = this.fileSaverReader.readFromFile("reservations.ser");
     }
 
     public void addCoworkingSpace() {
@@ -58,7 +59,7 @@ public class Admin {
 
         Workspace workspace = new Workspace(id, type, price);
         this.workspaceArray.add(workspace);
-        this.fileSaverReader.saveWorkspacesToFile(this.workspaceArray);
+        this.fileSaverReader.saveToFile(this.workspaceArray, "workspaces.ser");
         System.out.println("New coworking space added successfully!");
     }
 
@@ -85,6 +86,9 @@ public class Admin {
         System.out.println("Type in the id of coworking space you want to remove: ");
         System.out.println("id(number) - ");
         int id;
+        //id = this.scanner.nextInt();
+        //Optional opt = Optional.of(id);
+        // opt.orElseThrow(value, NonPresentException)
 
         while (true) {
             try {
@@ -106,8 +110,8 @@ public class Admin {
         this.workspaceArray.removeIf(item -> item.getId()== finalId);
         int finalId1 = id;
         this.reservationsArray.removeIf(item -> item.getWorkspaceId()== finalId1);
-        this.fileSaverReader.saveWorkspacesToFile(this.workspaceArray);
-        this.fileSaverReader.saveReservationsToFile(this.reservationsArray);
+        this.fileSaverReader.saveToFile(this.workspaceArray, "workspaces.ser");
+        this.fileSaverReader.saveToFile(this.reservationsArray, "reservations.ser");
         System.out.printf("Coworking space %d removed successfully", id);
     }
 
@@ -199,8 +203,8 @@ public class Admin {
                 reservation.setPrice(newPrice);
             } //nortification for user?
         }
-        this.fileSaverReader.saveWorkspacesToFile(this.workspaceArray);
-        this.fileSaverReader.saveReservationsToFile(this.reservationsArray);
+        this.fileSaverReader.saveToFile(this.workspaceArray, "workspaces.ser");
+        this.fileSaverReader.saveToFile(this.reservationsArray, "reservations.ser");
         System.out.println("Coworking space changed successfully");
 }
 
@@ -226,9 +230,9 @@ public class Admin {
 
         String finalId1 = id;
         Reservation reservationToBeCancelled = this.reservationsArray.stream()
-                .filter(item -> item.getId().toString().equals(finalId1)) //uuid -> id(string) and compares
-                .findFirst() // finds 1st one reservation and writes to reservationToBeCancelled
-                .orElse(null); //if nothing was found - reservationToBeCancelled = null
+                .filter(item -> item.getId().toString().equals(finalId1))
+                .findFirst()
+                .orElse(null);
 
         if (reservationToBeCancelled == null) {
             System.out.println("No reservations with such id");
@@ -242,8 +246,8 @@ public class Admin {
                 item.setAvailabilityStatus(true);
             }
         }
-        this.fileSaverReader.saveReservationsToFile(this.reservationsArray);
-        this.fileSaverReader.saveWorkspacesToFile(this.workspaceArray);
+        this.fileSaverReader.saveToFile(this.reservationsArray, "reservations.ser");
+        this.fileSaverReader.saveToFile(this.workspaceArray, "workspaces.ser");
         System.out.println("Reservation was cancelled successfully!");
     }
 }
