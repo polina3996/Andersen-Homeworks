@@ -63,17 +63,11 @@ public class Reservation implements Serializable {
         return this.start;
     }
 
-    public void setStart(LocalDate newStart) {
-        this.start = newStart;
-    }
 
     public LocalDate getEnd() {
         return this.end;
     }
 
-    public void setEnd(LocalDate newEnd) {
-        this.end = newEnd;
-    }
 
     public double getPrice() {
         return this.price;
