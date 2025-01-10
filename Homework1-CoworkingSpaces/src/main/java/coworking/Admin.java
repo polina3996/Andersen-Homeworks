@@ -1,6 +1,9 @@
+package coworking;
+
 import java.util.ArrayList;
 import java.util.InputMismatchException;
 import java.util.Scanner;
+
 /**
  * Manages spaces and view all bookings
  * Add, remove or update coworking spaces
