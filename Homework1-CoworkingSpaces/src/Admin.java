@@ -11,13 +11,11 @@ public class Admin {
     ArrayList<Workspace> workspaceArray;
     ArrayList<Reservation> reservationsArray;
 
-    public Admin(FileSaverReader fileSaverReader, Scanner scanner,
-                 ArrayList<Workspace> workspaceArray,
-                 ArrayList<Reservation> reservationsArray) {
+    public Admin(FileSaverReader fileSaverReader, Scanner scanner) {
          this.fileSaverReader = fileSaverReader;
          this.scanner = scanner;
-         this.workspaceArray = workspaceArray;
-         this.reservationsArray = reservationsArray;
+         this.workspaceArray = this.fileSaverReader.readFromFile("workspaces.ser") ;
+         this.reservationsArray = this.fileSaverReader.readFromFile("reservations.ser");
     }
 
     public void addCoworkingSpace() {
@@ -60,13 +58,12 @@ public class Admin {
 
         Workspace workspace = new Workspace(id, type, price);
         this.workspaceArray.add(workspace);
-        this.fileSaverReader.saveWorkspacesToFile(this.workspaceArray);
+        this.fileSaverReader.saveToFile(this.workspaceArray, "workspaces.ser");
         System.out.println("New coworking space added successfully!");
     }
 
 
     public boolean browseCoworkingSpaces(){
-        this.workspaceArray = this.fileSaverReader.readWorkspacesFromFile();
         try {
             CheckMethods.checkEmptiness(this.workspaceArray, "coworking spaces");
             System.out.println("Here are all coworking spaces :");
@@ -92,31 +89,39 @@ public class Admin {
         while (true) {
             try {
                 id = this.scanner.nextInt();
-                CheckMethods.checkCoworkPresence(id, this.workspaceArray);
+                int finalId2 = id;
+                Workspace workspaceToBeRemoved = workspaceArray.stream()
+                        .filter(item -> item.getId()== finalId2)
+                        .findFirst()
+                        .orElse(null);
+                if (workspaceToBeRemoved == null){
+                    System.out.println("No such coworking space. Please enter another one: ");
+                    continue;
+                }
+                //CheckMethods.checkCoworkPresence(id, this.workspaceArray);
             }
             catch (InputMismatchException e) {
                 System.out.println("This is not a number!");
                 this.scanner.nextLine();
                 continue;
             }
-            catch (NonPresentException e) {
-                System.out.println(e.getMessage());
-                continue; //caught an Exception - > again asks for id
-            }
+//            catch (NonPresentException e) {
+//                System.out.println(e.getMessage());
+//                continue; //caught an Exception - > again asks for id
+//            }
             break; // coworking exists and id is a number-> no exception -> stops asking for id and accepts last one
         }
         int finalId = id;
         this.workspaceArray.removeIf(item -> item.getId()== finalId);
         int finalId1 = id;
         this.reservationsArray.removeIf(item -> item.getWorkspaceId()== finalId1);
-        this.fileSaverReader.saveWorkspacesToFile(this.workspaceArray);
-        this.fileSaverReader.saveReservationsToFile(this.reservationsArray);
+        this.fileSaverReader.saveToFile(this.workspaceArray, "workspaces.ser");
+        this.fileSaverReader.saveToFile(this.reservationsArray, "reservations.ser");
         System.out.printf("Coworking space %d removed successfully", id);
     }
 
 
     public boolean viewAllReservations() {
-        this.reservationsArray = this.fileSaverReader.readReservationsFromFile();
         try {
             CheckMethods.checkEmptiness(this.reservationsArray, "reservations");
             System.out.println("Here are all reservations :");
@@ -142,17 +147,26 @@ public class Admin {
         while (true) {
             try {
                 id = this.scanner.nextInt();
-                CheckMethods.checkCoworkPresence(id, this.workspaceArray);
+                int finalId = id;
+                Workspace workspaceToBeUpdated = this.workspaceArray.stream()
+                        .filter(item -> item.getId() == finalId)
+                        .findFirst()
+                        .orElse(null);
+                if (workspaceToBeUpdated == null) {
+                    System.out.println("No workspaces with such id. Please enter another one: ");
+                    continue;
+                }
+                //CheckMethods.checkCoworkPresence(id, this.workspaceArray);
             }
             catch (InputMismatchException e) {
                 System.out.println("This is not a number!");
                 this.scanner.nextLine();
                 continue;
             }
-            catch (NonPresentException e) {
-                System.out.println(e.getMessage());
-                continue; //caught an Exception - > again asks for id
-            }
+//            catch (NonPresentException e) {
+//                System.out.println(e.getMessage());
+//                continue; //caught an Exception - > again asks for id
+//            }
             break; // coworking exists -> no exception -> stops asking for id and accepts last one
         }
         System.out.println("Type in the new id: ");
@@ -189,22 +203,32 @@ public class Admin {
             }
             break; // newPrice is number -> no exception -> stops asking for price and accepts last one
         }
-        for (Workspace workspace: this.workspaceArray) {
-            if (workspace.getId() == id) {
-                workspace.setId(newId);
-                workspace.setType(newType);
-                workspace.setPrice(newPrice);
-            }
+
+        //updating it in an array of CoworkingSpaces
+        int finalId1 = id;
+        Workspace workspaceToBeUpdated = this.workspaceArray.stream()
+                .filter(item -> item.getId()==finalId1)
+                .findFirst()
+                .orElse(null);
+
+        workspaceToBeUpdated.setId(newId);
+        workspaceToBeUpdated.setType(newType);
+        workspaceToBeUpdated.setPrice(newPrice);
+
+        //updating it in an array of Reservations (if such reservation exists)
+        int finalId2 = id;
+        Reservation reservationToBeUpdated = this.reservationsArray.stream()
+                .filter(item -> item.getWorkspaceId() ==finalId2)
+                .findFirst()
+                .orElse(null);
+        if (reservationToBeUpdated != null){
+            reservationToBeUpdated.setWorkspaceId(newId);
+            reservationToBeUpdated.setType(newType);
+            reservationToBeUpdated.setPrice(newPrice);
         }
-        for (Reservation reservation: this.reservationsArray) {
-            if (reservation.getWorkspaceId() == id) {
-                reservation.setWorkspaceId(newId);
-                reservation.setType(newType);
-                reservation.setPrice(newPrice);
-            } //nortification for user?
-        }
-        this.fileSaverReader.saveWorkspacesToFile(this.workspaceArray);
-        this.fileSaverReader.saveReservationsToFile(this.reservationsArray);
+
+        this.fileSaverReader.saveToFile(this.workspaceArray, "workspaces.ser");
+        this.fileSaverReader.saveToFile(this.reservationsArray, "reservations.ser");
         System.out.println("Coworking space changed successfully");
 }
 
@@ -218,21 +242,28 @@ public class Admin {
         String id;
         while (true) {
             id = this.scanner.next();
-            try {
-                CheckMethods.checkReservPresence(id, this.reservationsArray);
+            String finalId = id;
+            Reservation reservationToBeCancelled = reservationsArray.stream()
+                    .filter(item -> item.getId().toString().equals(finalId))
+                    .findFirst()
+                    .orElse(null);
+            if (reservationToBeCancelled == null){
+                System.out.println("No such reservation. Please enter another one: ");
+                continue;
             }
-            catch (NonPresentException e) {
-                System.out.println(e.getMessage());
-                continue; //caught an Exception - > again asks for id
-            }
+                //CheckMethods.checkReservPresence(id, this.reservationsArray);
+//            catch (NonPresentException e) {
+//                System.out.println(e.getMessage());
+//                continue; //caught an Exception - > again asks for id
+//            }
             break; // coworking exists -> no exception -> stops asking for id and accepts last one
         }
 
         String finalId1 = id;
         Reservation reservationToBeCancelled = this.reservationsArray.stream()
-                .filter(item -> item.getId().toString().equals(finalId1)) //uuid -> id(string) and compares
-                .findFirst() // finds 1st one reservation and writes to reservationToBeCancelled
-                .orElse(null); //if nothing was found - reservationToBeCancelled = null
+                .filter(item -> item.getId().toString().equals(finalId1))
+                .findFirst()
+                .orElse(null);
 
         if (reservationToBeCancelled == null) {
             System.out.println("No reservations with such id");
@@ -246,8 +277,8 @@ public class Admin {
                 item.setAvailabilityStatus(true);
             }
         }
-        this.fileSaverReader.saveReservationsToFile(this.reservationsArray);
-        this.fileSaverReader.saveWorkspacesToFile(this.workspaceArray);
+        this.fileSaverReader.saveToFile(this.reservationsArray, "reservations.ser");
+        this.fileSaverReader.saveToFile(this.workspaceArray, "workspaces.ser");
         System.out.println("Reservation was cancelled successfully!");
     }
 }
