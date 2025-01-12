@@ -1,3 +1,5 @@
+package coworking;
+
 import java.io.Serializable;
 
 public class Workspace implements Serializable {

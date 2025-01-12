@@ -1,3 +1,5 @@
+package coworking;
+
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
@@ -80,11 +82,24 @@ public class Customer {
             System.out.println("your name - ");
             String name = this.scanner.next();
             System.out.println("date of start in dd-mm-yyyy format - ");
-            // TODO: process Exception if wrong format
-            String start = this.scanner.next();
+            String start;
+            while (true) {
+                start = this.scanner.next();
+                if (CheckMethods.checkDate(start, "dd-MM-yyyy")){
+                    break;
+                }
+                this.scanner.nextLine();
+            }
+
             System.out.println("date of end in dd-mm-yyyy format - ");
-            // TODO: process Exception if wrong format
-            String end = this.scanner.next();
+            String end;
+            while (true) {
+                end = this.scanner.next();
+                if (CheckMethods.checkDate(end, "dd-MM-yyyy")){
+                    break;
+                }
+                this.scanner.nextLine();
+            }
 
             int finalId1 = id;
             Workspace workspace = this.workspaceArray.stream()
@@ -92,12 +107,9 @@ public class Customer {
                     .findFirst()
                     .orElse(null);
 
-//            for (Workspace item : this.workspaceArray) {
-//                if (item.getId() == id) { //look for workspace which user chose
-            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy");
             UUID uniqueKey = UUID.randomUUID();
             Reservation reservation = new Reservation(uniqueKey, id, workspace.getType(), name,
-                    LocalDate.parse(start, formatter), LocalDate.parse(end, formatter),
+                    LocalDate.parse(start, DateTimeFormatter.ofPattern("dd-MM-yyyy")), LocalDate.parse(end, DateTimeFormatter.ofPattern("dd-MM-yyyy")),
                     workspace.getPrice());
             this.reservationsArray.add(reservation);
             workspace.setAvailabilityStatus(false);

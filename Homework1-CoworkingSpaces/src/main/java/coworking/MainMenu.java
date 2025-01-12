@@ -1,4 +1,5 @@
-import java.util.ArrayList;
+package coworking;
+
 import java.util.Scanner;
 
 /**
