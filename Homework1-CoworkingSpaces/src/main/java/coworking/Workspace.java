@@ -13,11 +13,11 @@ public class Workspace implements Serializable {
     private double price;
     private boolean availabilityStatus;
 
-    public Workspace(int id, String type, double price) {
+    public Workspace(int id, String type, double price, boolean availabilityStatus) {
         this.id = id;
         this.type = type;
         this.price = price;
-        this.availabilityStatus = true;
+        this.availabilityStatus = availabilityStatus;
     }
 
     public int getId(){
