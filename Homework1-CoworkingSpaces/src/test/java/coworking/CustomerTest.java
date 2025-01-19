@@ -1,112 +1,171 @@
 package coworking;
-import java.io.ByteArrayInputStream;
-import java.time.LocalDate;
+import coworking.databases.DB;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mock;
+import org.mockito.MockedStatic;
+
+import java.sql.SQLException;
+import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
+import java.util.InputMismatchException;
+import java.util.List;
 import java.util.Scanner;
-import java.util.UUID;
 
 import static junit.framework.TestCase.*;
+import static org.junit.Assert.assertNotNull;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.*;
 
 public class CustomerTest {
     private Customer customer;
-    private FakeFileSaverReader fakeFileSaverReader;
-    private ArrayList<Workspace> workspaceArray;
-    private ArrayList<Reservation> reservationsArray;
+    @Mock private DB mockDb;
+    @Mock private Scanner mockScanner;
 
 
     @BeforeEach
     void setUp() {
-        fakeFileSaverReader = new FakeFileSaverReader();
-        workspaceArray = new ArrayList<>();
-        reservationsArray = new ArrayList<>();
-
-        workspaceArray.add(new Workspace(1, "Type1", 20.0));
-        workspaceArray.add(new Workspace(2, "Type2", 30.0));
-        workspaceArray.get(0).setAvailabilityStatus(true);
-        workspaceArray.get(1).setAvailabilityStatus(false);
-
-        fakeFileSaverReader.saveToFile(workspaceArray, "workspaces.ser");
-
-        customer = new Customer(fakeFileSaverReader, new Scanner(""));
-        customer.workspaceArray = workspaceArray;
-        customer.reservationsArray = reservationsArray;
+        mockDb = mock(DB.class);
+        mockScanner = mock(Scanner.class);
+        customer = new Customer(mockDb, mockScanner);
     }
 
     @Test
-    void givenWorkspaces_whenBrowseAvailableSpaces_thenGetOneWorkspace() {
-        //When
-        ArrayList<Workspace> availableWorkspaces = customer.browseAvailableSpaces();
-
-        //Then
-        assertEquals(1, availableWorkspaces.size());
-        assertTrue(availableWorkspaces.stream().allMatch(Workspace::getAvailabilityStatus));
-
-        Workspace workspace = availableWorkspaces.get(0);
-        assertEquals(1, workspace.getId());
-        assertEquals("Type1", workspace.getType());
-        assertEquals(20.0, workspace.getPrice());
-
-    }
-
-    @Test
-    void givenInput_whenMakeAReservation_thenReservationIsAddedAndWorkspaceStatusIsChanged() {
+    void givenDifferentScenarios_whenBrowseAvailableSpaces_thenVerifyBehavior() throws SQLException {
         //Given
-        customer.scanner = new Scanner(new ByteArrayInputStream("1\nJohn\n01-01-2025\n03-01-2025\n".getBytes()));
+        List<Workspace> workspaces = List.of(
+                new Workspace(1, "Art", 50.0, true),
+                new Workspace(2, "Tech", 40.0, true),
+                new Workspace(3, "Open", 30.0, true)
+        );
+        when(mockDb.selectAvailableWorkspaces()).
+                thenReturn(new ArrayList<>(workspaces))
+                .thenReturn(new ArrayList<>());
 
         //When
-        customer.makeAReservation();
+        ArrayList<Workspace> result1 = customer.browseAvailableSpaces();
+        ArrayList<Workspace> result2 = customer.browseAvailableSpaces();
 
         //Then
-        assertEquals(1, fakeFileSaverReader.readFromReservationsFile().size());
-
-        Reservation reservation = fakeFileSaverReader.readFromReservationsFile().get(0);
-        assertEquals("John", reservation.getName());
-        assertEquals(1, reservation.getWorkspaceId());
-        assertEquals(LocalDate.parse("01-01-2025", DateTimeFormatter.ofPattern("dd-MM-yyyy")), reservation.getStart());
-        assertEquals(LocalDate.parse("03-01-2025", DateTimeFormatter.ofPattern("dd-MM-yyyy")), reservation.getEnd());
-        assertFalse(fakeFileSaverReader.readFromWorkspacesFile().get(0).getAvailabilityStatus());
+        assertNotNull(result1);
+        assertEquals(result2, new ArrayList<Workspace>());
+        verify(mockDb, times(2)).selectAvailableWorkspaces();
     }
 
     @Test
-    void givenReservationAndInput_whenViewMyReservations_thenReservationIsReturned() {
-        //Given
-        customer.scanner = new Scanner(new ByteArrayInputStream("1\nJohn\n01-01-2025\n03-01-2025\n".getBytes()));
-        customer.makeAReservation();
-        fakeFileSaverReader.saveToFile(customer.reservationsArray, "reservations.ser");
+    void givenDifferentScenarios_whenMakeAReservation_thenVerifyBehavior() throws SQLException {
+        try (MockedStatic<CheckMethods> mockedCheckMethods = mockStatic(CheckMethods.class)){
+            //Given
+            List<Workspace> workspaces = List.of(
+                new Workspace(1, "Art", 50.0, true),
+                new Workspace(2, "Tech", 40.0, true),
+                new Workspace(3, "Open", 30.0, true)
+            );
+            when(mockDb.selectAvailableWorkspaces()).
+                thenReturn(new ArrayList<>(workspaces))
+                .thenReturn(new ArrayList<>());
 
-        customer.scanner = new Scanner("John\n");
+            when(mockScanner.nextInt())
+                    .thenThrow(new InputMismatchException())
+                            .thenReturn(1);
 
-        //When+Then
-        assertTrue(customer.viewMyReservations());
-        assertEquals(1, fakeFileSaverReader.readFromReservationsFile().size());
+            when(mockScanner.next())
+                    .thenReturn("John")
+                    .thenReturn("2025-03-03")
+                    .thenReturn("2025-03-05");
 
-        Reservation reservation = fakeFileSaverReader.readFromReservationsFile().get(0);
-        assertEquals("John", reservation.getName());
-        assertEquals(1, reservation.getWorkspaceId());
-        assertEquals(LocalDate.parse("01-01-2025", DateTimeFormatter.ofPattern("dd-MM-yyyy")), reservation.getStart());
-        assertEquals(LocalDate.parse("03-01-2025", DateTimeFormatter.ofPattern("dd-MM-yyyy")), reservation.getEnd());
-        assertFalse(fakeFileSaverReader.readFromWorkspacesFile().get(0).getAvailabilityStatus());
+            mockedCheckMethods
+                    .when(() -> CheckMethods.checkDate(anyString(), anyString()))
+                    .thenAnswer(invocation -> {
+                        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+                        String s = invocation.getArgument(0);
+                        try {
+                            LocalDate.parse(s, formatter);
+                            return true;
+                        } catch (DateTimeParseException e) {
+                            System.out.println("Wrong date format. Please enter another one: ");
+                            return false;
+                        }
+                    });
+
+
+            when(mockDb.insertIntoReservations(1, "John","2025-03-03", "2025-03-05")).thenReturn(1);
+
+            when(mockDb.updateAvailabilityStatus(false, 1)).thenReturn(1);
+
+
+            //When
+            customer.makeAReservation();
+
+            //Then
+            verify(mockDb, times(1)).selectAvailableWorkspaces();
+            verify(mockDb, times(1)).insertIntoReservations(1, "John","2025-03-03", "2025-03-05" );
+            verify(mockDb, times(1)).updateAvailabilityStatus(false,1);
+            verify(mockScanner, times(2)).nextInt();
+            verify(mockScanner, times(3)).next();
+            mockedCheckMethods.verify(() -> CheckMethods.checkDate(anyString(), anyString()), times(2));
+
+    }
     }
 
     @Test
-    void givenReservationAndInput_whenCancelMyReservations_thenReservationIsRemovedAndWorkspaceStatusIsChanged() {
+    void givenDifferentScenarios_whenViewMyReservations_thenVerifyBehavior() throws SQLException {
         //Given
-        customer.scanner = new Scanner(new ByteArrayInputStream("1\nJohn\n01-01-2025\n03-01-2025\n".getBytes()));
-        customer.makeAReservation();
-        UUID uuid = customer.reservationsArray.get(0).getId();
-        fakeFileSaverReader.saveToFile(customer.reservationsArray, "reservations.ser");
+        List<Reservation> reservations = List.of(
+                new Reservation(1, 1,"Art", "John", "2025-03-03", "2025-03-04", 50.0, "2025-01-01"),
+                new Reservation(2, 2,"Open", "John", "2025-03-05", "2025-03-06", 60.0, "2025-01-02")
+        );
+        when(mockScanner.next()).thenReturn("John");
 
-        customer.scanner = new Scanner("John\n" + uuid);
+        when(mockDb.selectFromMyReservations("John")).
+                    thenReturn(new ArrayList<>(reservations))
+                    .thenReturn(new ArrayList<>());
+
+        //When
+        ArrayList<Reservation> result1 = customer.viewMyReservations();
+        ArrayList<Reservation> result2 = customer.viewMyReservations();
+
+        //Then
+        verify(mockDb, times(2)).selectFromMyReservations("John");
+        verify(mockScanner, times(2)).next();
+        assertEquals(result1, reservations);
+        assertNull(result2);
+        }
+
+    @Test
+    void givenDifferentScenarios_whenCancelMyReservation_thenVerifyBehavior() throws SQLException {
+        //Given
+        List<Reservation> reservations = List.of(
+                new Reservation(1, 1,"Art", "John", "2025-03-03", "2025-03-04", 50.0, "2025-01-01"),
+                new Reservation(2, 2,"Open", "John", "2025-03-05", "2025-03-06", 60.0, "2025-01-02")
+        );
+        when(mockScanner.next()).thenReturn("John");
+
+        when(mockDb.selectFromMyReservations("John")).
+                thenReturn(new ArrayList<>(reservations));
+
+        when(mockScanner.nextInt())
+                .thenThrow(new InputMismatchException())
+                .thenReturn(1);
+
+        when(mockDb.updateAvailabilityStatus(true, 1)).thenReturn(1);
+
+        when(mockDb.removeFromMyReservations(1)).thenReturn(1);
+
 
         //When
         customer.cancelMyReservation();
 
         //Then
-        assertTrue(fakeFileSaverReader.readFromReservationsFile().isEmpty());
-        assertTrue(fakeFileSaverReader.readFromWorkspacesFile().get(0).getAvailabilityStatus());
+        verify(mockDb, times(1)).selectFromMyReservations("John");
+        verify(mockScanner, times(1)).next();
+        verify(mockScanner, times(2)).nextInt();
+        verify(mockDb, times(1)).updateAvailabilityStatus(true, 1);
+        verify(mockDb, times(1)).removeFromMyReservations(1);
     }
-
 }
+
+
+

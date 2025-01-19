@@ -31,7 +31,9 @@ public class Customer {
         }
         catch (NullPointerException e){
             System.out.println("No available workspaces yet");
-    }
+    } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
         return null;
     }
 
@@ -55,7 +57,6 @@ public class Customer {
                         break;
                     }
                 }
-                //workspaceToBeReserved = this.db.selectFromWorkspacesById(id);
                 if (workspaceToBeReserved == null){
                     System.out.println("No such coworking space. Please enter another one: ");
                     continue;
@@ -115,6 +116,8 @@ public class Customer {
             }
         } catch (CheckEmptinessException e) {
             System.out.println(e.getMessage());
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
         }
         return reservations;
     }

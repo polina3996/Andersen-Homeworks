@@ -85,10 +85,6 @@ public class Reservation implements Serializable {
 
     @Override
     public String toString() {
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy");
-//        String start = getStart().format(formatter);
-//        String end = getEnd().format(formatter);
-        //String date = getDate().format(formatter);
         return String.format("id: %s, type: %s, name: %s, price: %.2f, start: %s, end: %s, date: %s", getId(), getType(), getName(), getPrice(), getStart(), getEnd(), getDate());
     }
 }

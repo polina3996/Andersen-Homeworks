@@ -17,16 +17,5 @@ public class FileSaverReader {
     }
 
 
-    public <T> ArrayList<T> readFromFile(String fileName){
-        try (ObjectInputStream ois = new ObjectInputStream(new FileInputStream(fileName))) {
-            return (ArrayList<T>) ois.readObject();
-        } catch (FileNotFoundException e){
-            return new ArrayList<T>();
-        }
-        catch (IOException | ClassNotFoundException e) {
-            e.printStackTrace();
-            throw new RuntimeException(e);
-        }
-    }
 
 }

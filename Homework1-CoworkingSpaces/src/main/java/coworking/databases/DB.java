@@ -36,11 +36,11 @@ public class DB {
     }
 
     public int insertIntoWorkspaces(String type, double price) {
-        if (connect() != null){
-            try (PreparedStatement preparedStatement = connect().prepareStatement(SQLQueries.insertIntoWorkspTableSQL)) {
+        Connection connection = connect();
+        if (connection != null){
+            try (connection; PreparedStatement preparedStatement = connection.prepareStatement(SQLQueries.insertIntoWorkspTableSQL)) {
                 preparedStatement.setString(1, type);
                 preparedStatement.setDouble(2, price);
-                connect().close();
                 return preparedStatement.executeUpdate();// N of rows affected
             } catch (SQLException | NullPointerException ex) {
                 throw new RuntimeException(ex);
@@ -51,14 +51,14 @@ public class DB {
     }
 
     public int insertIntoReservations(int workspaceId, String name, String start, String end) {
-        if (connect() != null){
-            try (PreparedStatement preparedStatement = connect().prepareStatement(SQLQueries.insertIntoReservTableSQL)) {
+        Connection connection = connect();
+        if (connection != null){
+            try (connection; PreparedStatement preparedStatement = connection.prepareStatement(SQLQueries.insertIntoReservTableSQL)) {
                 preparedStatement.setInt(1, workspaceId);
                 preparedStatement.setString(2, name);
                 preparedStatement.setDate(3, Date.valueOf(start));
                 preparedStatement.setDate(4, Date.valueOf(end));
                 //by default  - current timestamp is also added
-                connect().close();
                 return preparedStatement.executeUpdate();// N of rows affected
             } catch (SQLException | NullPointerException ex) {
                 throw new RuntimeException(ex);
@@ -68,11 +68,11 @@ public class DB {
             throw new ConnectionException("No connection to DB. Check username, password or DB-driver");}
     }
 
-    public int removeFromWorkspaces(int id) {
-        if (connect() != null){
-            try (PreparedStatement preparedStatement = connect().prepareStatement(SQLQueries.removeFromWorkspTableSQL)) {
+    public int removeFromWorkspaces(int id)  {
+        Connection connection = connect();
+        if (connection != null){
+            try (connection; PreparedStatement preparedStatement = connection.prepareStatement(SQLQueries.removeFromWorkspTableSQL)) {
                 preparedStatement.setInt(1, id);
-                connect().close();
                 return preparedStatement.executeUpdate();// N of rows affected(0 of not such id)
             } catch (SQLException | NullPointerException ex) {
                 throw new RuntimeException(ex);
@@ -82,11 +82,11 @@ public class DB {
             throw new ConnectionException("No connection to DB. Check username, password or DB-driver");}
     }
 
-    public int removeFromMyReservations(int id) {
-        if (connect() != null){
-            try (PreparedStatement preparedStatement = connect().prepareStatement(SQLQueries.removeFromReservTableSQL)) {
+    public int removeFromMyReservations(int id)  {
+        Connection connection = connect();
+        if (connection != null){
+            try (connection; PreparedStatement preparedStatement = connection.prepareStatement(SQLQueries.removeFromReservTableSQL)) {
                 preparedStatement.setInt(1, id);
-                connect().close();
                 return preparedStatement.executeUpdate();// N of rows affected
             } catch (SQLException | NullPointerException ex) {
                 throw new RuntimeException(ex);
@@ -96,9 +96,10 @@ public class DB {
             throw new ConnectionException("No connection to DB. Check username, password or DB-driver");}
     }
 
-    public ArrayList<Workspace> selectFromWorkspaces(){
-        if (connect() != null){
-            try (Statement statement = connect().createStatement()) {
+    public ArrayList<Workspace> selectFromWorkspaces() throws SQLException {
+        Connection connection = connect();
+        if (connection != null){
+            try (Statement statement = connection.createStatement()) {
                 ResultSet rs = statement.executeQuery(SQLQueries.selectFromWorkspTableSQL);
                 ArrayList<Workspace> workspaces = new ArrayList<Workspace>();
                 while (rs.next()){
@@ -109,10 +110,11 @@ public class DB {
                     Workspace workspace = new Workspace(id, type, price, availabilityStatus);
                     workspaces.add(workspace);
                 }
-                connect().close();
                 return workspaces;
             } catch (SQLException | NullPointerException ex) {
                 throw new RuntimeException(ex);
+            }finally {
+                connection.close();
             }
         }
         else {
@@ -121,8 +123,9 @@ public class DB {
     }
 
     public Workspace selectFromWorkspacesById(int id) throws SQLException {
-        if (connect() != null){
-            try (PreparedStatement preparedStatement = connect().prepareStatement(SQLQueries.selectFromWorkspTableByIdSQL)) {
+        Connection connection = connect();
+        if (connection != null){
+            try (PreparedStatement preparedStatement = connection.prepareStatement(SQLQueries.selectFromWorkspTableByIdSQL)) {
                 preparedStatement.setInt(1, id);
 
                 try(ResultSet rs = preparedStatement.executeQuery()) {
@@ -133,20 +136,22 @@ public class DB {
                         boolean availabilityStatus = rs.getBoolean("availability_status");
                         workspace = new Workspace(id, type, price, availabilityStatus);
                     }
-                    connect().close();
                     return workspace;
                 } catch (SQLException | NullPointerException ex) {
                 throw new RuntimeException(ex);
-            }
+            }finally {
+                    connection.close();
+                }
         }
         }
         else {
             throw new ConnectionException("No connection to DB. Check username, password or DB-driver");}
     }
 
-    public  ArrayList<Workspace> selectAvailableWorkspaces() {
-        if (connect() != null){
-            try (Statement statement = connect().createStatement()) {
+    public  ArrayList<Workspace> selectAvailableWorkspaces() throws SQLException {
+        Connection connection = connect();
+        if (connection != null){
+            try (Statement statement = connection.createStatement()) {
                 ResultSet rs = statement.executeQuery(SQLQueries.selectAvailableWorkspTableSQL);
                 ArrayList<Workspace> availableWorkspaces = new ArrayList<Workspace>();
                 while (rs.next()){
@@ -157,19 +162,21 @@ public class DB {
                     Workspace workspace = new Workspace(id, type, price, availabilityStatus);
                     availableWorkspaces.add(workspace);
                 }
-                connect().close();
                 return availableWorkspaces;
             } catch (SQLException | NullPointerException ex) {
                 throw new RuntimeException(ex);
+            }finally {
+                connection.close();
             }
         }
         else {
             throw new ConnectionException("No connection to DB. Check username, password or DB-driver");}
     }
 
-    public  ArrayList<Reservation> selectFromReservations() {
-        if (connect() != null){
-            try (Statement statement = connect().createStatement()) {
+    public  ArrayList<Reservation> selectFromReservations() throws SQLException {
+        Connection connection = connect();
+        if (connection != null){
+            try (Statement statement = connection.createStatement()) {
                 ResultSet rs = statement.executeQuery(SQLQueries.selectFromReservTableSQL);
                 ArrayList<Reservation> reservations = new ArrayList<Reservation>();
                 while (rs.next()){
@@ -184,47 +191,21 @@ public class DB {
                     Reservation reservation = new Reservation(id, workspaceId, type, name, start, end, price, date);
                     reservations.add(reservation);
                 }
-                connect().close();
                 return reservations;
             } catch (SQLException | NullPointerException ex) {
                 throw new RuntimeException(ex);
+            }finally {
+                connection.close();
             }
         }
         else {
             throw new ConnectionException("No connection to DB. Check username, password or DB-driver");}
     }
 
-    public Reservation selectFromReservationsById(int id) {
-        if (connect() != null){
-            try (PreparedStatement preparedStatement = connect().prepareStatement(SQLQueries.selectFromReservByIdSQL)) {
-                preparedStatement.setInt(1, id);
-
-                try(ResultSet rs = preparedStatement.executeQuery()) {
-                    Reservation reservation = null;
-                    while (rs.next()) {
-                        int workspaceId = rs.getInt("workspace_id");
-                        String name = rs.getString("name");
-                        String start = rs.getDate("start_date").toString();
-                        String end = rs.getDate("end_date").toString();
-                        String date = rs.getTimestamp("date").toString();
-                        String type = rs.getString("type");
-                        double price = rs.getDouble("price");
-                        reservation = new Reservation(id, workspaceId, type, name, start, end, price, date);
-                    }
-                    connect().close();
-                    return reservation;
-                }
-            } catch (SQLException | NullPointerException e) {
-                throw new RuntimeException(e);
-            }
-        }
-        else {
-            throw new ConnectionException("No connection to DB. Check username, password or DB-driver");}
-    }
-
-    public ArrayList<Reservation> selectFromMyReservations(String name) {
-        if (connect() != null){
-            try (PreparedStatement preparedStatement = connect().prepareStatement(SQLQueries.selectFromMyReservTableSQL)) {
+    public ArrayList<Reservation> selectFromMyReservations(String name) throws SQLException {
+        Connection connection = connect();
+        if (connection != null){
+            try (PreparedStatement preparedStatement = connection.prepareStatement(SQLQueries.selectFromMyReservTableSQL)) {
                 preparedStatement.setString(1, name);
                 ArrayList<Reservation> reservations = new ArrayList<Reservation>();
                 try(ResultSet rs = preparedStatement.executeQuery()){
@@ -239,23 +220,24 @@ public class DB {
                         Reservation reservation = new Reservation(id, workspaceId, type, name, start, end, price, date);
                         reservations.add(reservation);
                     }
-                    connect().close();
                     return reservations;
                 }
             }catch (SQLException | NullPointerException ex) {
                 throw new RuntimeException(ex);
+            }finally {
+                connection.close();
             }
         }else {
             throw new ConnectionException("No connection to DB. Check username, password or DB-driver");}
     }
 
-    public int updateWorkspace(String type, double price, int id){
-        if (connect() != null){
-            try (PreparedStatement preparedStatement = connect().prepareStatement(SQLQueries.updateWorkspTableSQL)) {
+    public int updateWorkspace(String type, double price, int id) {
+        Connection connection = connect();
+        if (connection != null){
+            try (connection; PreparedStatement preparedStatement = connection.prepareStatement(SQLQueries.updateWorkspTableSQL)) {
                 preparedStatement.setString(1, type);
                 preparedStatement.setDouble(2, price);
                 preparedStatement.setInt(3, id);
-                connect().close();
                 return preparedStatement.executeUpdate();// N of rows affected
             } catch (SQLException | NullPointerException ex) {
                 throw new RuntimeException(ex);
@@ -265,12 +247,12 @@ public class DB {
             throw new ConnectionException("No connection to DB. Check username, password or DB-driver");}
     }
 
-    public int updateAvailabilityStatus(boolean availabilityStatus, int id){
-        if (connect() != null){
-            try (PreparedStatement preparedStatement = connect().prepareStatement(SQLQueries.updateAvailabilityStatusSQL)) {
+    public int updateAvailabilityStatus(boolean availabilityStatus, int id)  {
+        Connection connection = connect();
+        if (connection != null){
+            try (connection; PreparedStatement preparedStatement = connection.prepareStatement(SQLQueries.updateAvailabilityStatusSQL)) {
                 preparedStatement.setBoolean(1, availabilityStatus);
                 preparedStatement.setInt(2, id);
-                connect().close();
                 return preparedStatement.executeUpdate();// N of rows affected
             } catch (SQLException | NullPointerException ex) {
                 throw new RuntimeException(ex);

@@ -52,7 +52,7 @@ public class Admin {
                 System.out.println(item);
             }
         }
-        catch (CheckEmptinessException e) {
+        catch (CheckEmptinessException | SQLException e) {
             System.out.println(e.getMessage());
             return false;
         }
@@ -104,6 +104,8 @@ public class Admin {
         }
         catch (CheckEmptinessException | NullPointerException e) {
             System.out.println(e.getMessage());
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
         }
         return null;
     }
