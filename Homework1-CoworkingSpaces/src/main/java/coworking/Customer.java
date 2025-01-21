@@ -1,7 +1,7 @@
 package coworking;
+import coworking.databases.DB;
 
-import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
+import java.sql.SQLException;
 import java.util.*;
 
 /**
@@ -12,168 +12,157 @@ import java.util.*;
  * - see their reservations and cancel them by selecting the reservation ID
  */
 public class Customer {
-    FileSaverReader fileSaverReader;
     Scanner scanner;
-    ArrayList<Workspace> workspaceArray;
-    ArrayList<Reservation> reservationsArray;
+    DB db;
 
-    public Customer(FileSaverReader fileSaverReader, Scanner scanner) {
-        this.fileSaverReader = fileSaverReader;
+    public Customer(DB db, Scanner scanner) {
         this.scanner = scanner;
-        this.workspaceArray = this.fileSaverReader.readFromFile("workspaces.ser");
-        this.reservationsArray = this.fileSaverReader.readFromFile("reservations.ser");
+        this.db = db;
     }
 
     public ArrayList<Workspace> browseAvailableSpaces() {
-        ArrayList<Workspace> availableWorkspaces = new ArrayList<Workspace>(this.workspaceArray.stream()
-                .filter(Workspace::getAvailabilityStatus)
-                .toList());
-
-        try {
-            CheckMethods.checkEmptiness(availableWorkspaces, "available workspaces");
+        try{
+            ArrayList<Workspace> availableWorkspaces = this.db.selectAvailableWorkspaces();
             System.out.println("Here are available coworking spaces for you:");
-            System.out.println(availableWorkspaces);
+            for (Workspace workspace:availableWorkspaces){
+                System.out.println(workspace);
+            }
             return availableWorkspaces;
         }
-        catch (CheckEmptinessException e){
-            System.out.println(e.getMessage());
-            return new ArrayList<Workspace>(); // empty array
+        catch (NullPointerException e){
+            System.out.println("No available workspaces yet");
+    } catch (SQLException e) {
+            throw new RuntimeException(e);
         }
+        return null;
     }
 
     public void makeAReservation() {
-        ArrayList<Workspace> availableWorkspaces = browseAvailableSpaces();//shows available spaces(with id+messages) and returns true/false
-        if (availableWorkspaces == null || availableWorkspaces.isEmpty()){
+        ArrayList<Workspace> availableWorkspaces = browseAvailableSpaces();
+        if (availableWorkspaces == null){
             return;
         }
-        try {
-            CheckMethods.checkEmptiness(availableWorkspaces, "available workspaces");
-            System.out.println("Choose the id of any available space: ");
-            System.out.println("id - ");
-            int id;
 
-            while (true) {
-                try {
-                    id = this.scanner.nextInt();
-                    int finalId = id;
-                    Workspace workspaceToBeReserved = availableWorkspaces.stream()
-                            .filter(item -> item.getId() == finalId)
-                            .findFirst()
-                            .orElse(null);
-                    if (workspaceToBeReserved == null){
-                        System.out.println("No such coworking space. Please enter another one: ");
-                        continue;
+        System.out.println("Choose the id of any available space: ");
+        System.out.println("id - ");
+        int id;
+        Workspace workspaceToBeReserved = null;
+
+        while (true) {
+            try {
+                id = this.scanner.nextInt();
+                for (Workspace workspace : availableWorkspaces){
+                    if (workspace.getId() == id){
+                        workspaceToBeReserved = workspace;
+                        break;
                     }
                 }
-                catch (InputMismatchException e) {
-                    System.out.println("It's not a number!");
-                    this.scanner.nextLine();
+                if (workspaceToBeReserved == null){
+                    System.out.println("No such coworking space. Please enter another one: ");
                     continue;
                 }
-                break; // id is unique and number -> no exception -> stops asking for id and accepts last one
             }
-
-            System.out.println("Type in all data to make a reservation: ");
-            System.out.println("your name - ");
-            String name = this.scanner.next();
-            System.out.println("date of start in dd-mm-yyyy format - ");
-            String start;
-            while (true) {
-                start = this.scanner.next();
-                if (CheckMethods.checkDate(start, "dd-MM-yyyy")){
-                    break;
-                }
+            catch (InputMismatchException e) {
+                System.out.println("It's not a number!");
                 this.scanner.nextLine();
+                continue;
             }
+            break; // id exists and it's number -> no exception -> stops asking for id and accepts last one
+        }
 
-            System.out.println("date of end in dd-mm-yyyy format - ");
-            String end;
-            while (true) {
-                end = this.scanner.next();
-                if (CheckMethods.checkDate(end, "dd-MM-yyyy")){
-                    break;
-                }
-                this.scanner.nextLine();
+        System.out.println("Type in all data to make a reservation: ");
+        System.out.println("your name - ");
+        String name = this.scanner.next();
+        System.out.println("date of start in yyyy-MM-dd format - ");
+        String start;
+        while (true) {
+            start = this.scanner.next();
+            if (CheckMethods.checkDate(start, "yyyy-MM-dd")){
+                break;
             }
-
-            int finalId1 = id;
-            Workspace workspace = this.workspaceArray.stream()
-                    .filter(item -> item.getId() == finalId1)
-                    .findFirst()
-                    .orElse(null);
-
-            UUID uniqueKey = UUID.randomUUID();
-            Reservation reservation = new Reservation(uniqueKey, id, workspace.getType(), name,
-                    LocalDate.parse(start, DateTimeFormatter.ofPattern("dd-MM-yyyy")), LocalDate.parse(end, DateTimeFormatter.ofPattern("dd-MM-yyyy")),
-                    workspace.getPrice());
-            this.reservationsArray.add(reservation);
-            workspace.setAvailabilityStatus(false);
-            this.fileSaverReader.saveToFile(this.reservationsArray, "reservations.ser");
-            this.fileSaverReader.saveToFile(this.workspaceArray, "workspaces.ser");
-            System.out.println("New reservation was made successfully!");
+            this.scanner.nextLine();
         }
-        catch (CheckEmptinessException e){
-            System.out.println(e.getMessage());
+
+        System.out.println("date of end in yyyy-mm-dd format - ");
+        String end;
+        while (true) {
+            end = this.scanner.next();
+            if (CheckMethods.checkDate(end, "yyyy-MM-dd")){
+                break;
+            }
+            this.scanner.nextLine();
         }
+
+        int reservationsAdded = this.db.insertIntoReservations(workspaceToBeReserved.getId(), name, start, end);
+        int workspUpdated = this.db.updateAvailabilityStatus(false, workspaceToBeReserved.getId());
+        System.out.println("New reservation was made successfully!");
     }
 
-    public boolean viewMyReservations() {
+    public ArrayList<Reservation> viewMyReservations() {
         System.out.println("Type in your name: ");
         System.out.println("name - ");
         String name = this.scanner.next();
 
+        ArrayList<Reservation> reservations = null;
         try {
-            CheckMethods.checkEmptiness(this.reservationsArray, "reservations");
             System.out.println("Here are your reservations: ");
-            for (Reservation item: this.reservationsArray) {
-                if (item.getName().equals(name)) {
-                    System.out.println(item);
-                }
-                else {
-                    System.out.println("You have no reservations yet");
-                    return false;
-                }
+            reservations = this.db.selectFromMyReservations(name);
+            if (reservations == null || reservations.isEmpty()) {
+                System.out.println("You have no reservations yet");
+                return null;
             }
-            return true;
-        }
-        catch (CheckEmptinessException e){
+            for (Reservation item : reservations) {
+                System.out.println(item);
+            }
+        } catch (CheckEmptinessException e) {
             System.out.println(e.getMessage());
-            return false;
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
         }
+        return reservations;
     }
 
     public void cancelMyReservation() {
-        if (!viewMyReservations()) { //shows reservations(with id+messages) and returns true/false
+        ArrayList<Reservation> reservations = viewMyReservations();
+        if (reservations == null) {
             return;
         }
 
         System.out.println("Choose the reservation you want to cancel by id: ");
-        System.out.println("id(just copy it) - ");
-        String id;
-        while (true) {
-            id = this.scanner.next();
-            String finalId2 = id;
-            Reservation reservationToBeCancelled = this.reservationsArray.stream()
-                    .filter(item -> item.getId().toString().equals(finalId2))
-                    .findFirst()
-                    .orElse(null);
+        System.out.println("id - ");
+        int id;
+        int workspaceToBeUpdatedId = -1;
+        Reservation reservationToBeCancelled = null;
 
-            if (reservationToBeCancelled == null) {
-                System.out.println("No such reservation. Please enter another one: ");
-                continue;
-            } else {
-                this.reservationsArray.remove(reservationToBeCancelled);
-                Workspace workspaceToBecomeAvailable = workspaceArray.stream()
-                        .filter(item -> item.getId() == reservationToBeCancelled.getWorkspaceId())
-                        .findFirst()
-                        .orElse(null);
-                workspaceToBecomeAvailable.setAvailabilityStatus(true);
-                this.fileSaverReader.saveToFile(this.reservationsArray, "reservations.ser");
-                this.fileSaverReader.saveToFile(this.workspaceArray, "workspaces.ser");
-                System.out.println("Your reservation was cancelled successfully!");
-                break;
+        while (true) {
+            try {
+                id = this.scanner.nextInt();
+                for (Reservation reservation:reservations){
+                    if (reservation.getId() == id){
+                        reservationToBeCancelled = reservation;
+                        workspaceToBeUpdatedId = reservationToBeCancelled.getWorkspaceId();
+                        break;
+                    }
+                }
+                if (reservationToBeCancelled == null){
+                    System.out.println("No such reservation. Please enter another one: ");
+                    continue;
+                }
             }
+            catch (InputMismatchException e) {
+                System.out.println("It's not a number!");
+                this.scanner.nextLine();
+                continue;
+            }
+            break; // id exists and it's number -> no exception -> stops asking for id and accepts last one
         }
+        int workspaceUpdated = this.db.updateAvailabilityStatus(true, workspaceToBeUpdatedId);
+        int reservationsRemoved = this.db.removeFromMyReservations(reservationToBeCancelled.getId());
+
+        System.out.println("Your reservation was cancelled successfully!");
+
     }
 }
+
+
 

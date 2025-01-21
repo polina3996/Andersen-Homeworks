@@ -3,22 +3,21 @@ package coworking;
 import java.io.Serializable;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
-import java.util.UUID;
 
 public class Reservation implements Serializable {
     /**
      * display all reservations
      */
-    private UUID id;
+    private int id;
     private int workspaceId;
     private String type;
     private String name;
-    private LocalDate start;
-    private LocalDate end;
+    private String start;
+    private String end;
     private double price;
-    private final LocalDate DATE;
+    private String date;
 
-    public Reservation(UUID id, int workspaceId, String type, String name, LocalDate start, LocalDate end, double price) {
+    public Reservation(int id, int workspaceId, String type, String name, String start, String end, double price, String date) {
         this.id = id;
         this.workspaceId = workspaceId;
         this.type =  type;
@@ -26,14 +25,14 @@ public class Reservation implements Serializable {
         this.start = start;
         this.end = end;
         this.price = price;
-        this.DATE = LocalDate.now(); //by default - current date
+        this.date = date;
     }
 
-    public UUID getId() {
+    public int getId() {
         return this.id;
     }
 
-    public void setId(UUID newId) {
+    public void setId(int newId) {
         this.id = newId;
     }
 
@@ -61,12 +60,12 @@ public class Reservation implements Serializable {
         this.name = newName;
     }
 
-    public LocalDate getStart() {
+    public String getStart() {
         return this.start;
     }
 
 
-    public LocalDate getEnd() {
+    public String getEnd() {
         return this.end;
     }
 
@@ -79,17 +78,13 @@ public class Reservation implements Serializable {
         this.price = newPrice;
     }
 
-    public LocalDate getDate() {
-        return this.DATE;
+    public String getDate() {
+        return this.date;
     }
 
 
     @Override
     public String toString() {
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy");
-        String start = getStart().format(formatter);
-        String end = getEnd().format(formatter);
-        String date = getDate().format(formatter);
-        return String.format("id: %s, type: %s, name: %s, price: %.2f, start: %s, end: %s, date: %s", getId(), getType(), getName(), getPrice(), start, end, date);
+        return String.format("id: %s, type: %s, name: %s, price: %.2f, start: %s, end: %s, date: %s", getId(), getType(), getName(), getPrice(), getStart(), getEnd(), getDate());
     }
 }

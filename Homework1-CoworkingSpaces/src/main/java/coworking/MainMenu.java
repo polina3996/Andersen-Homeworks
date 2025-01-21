@@ -1,5 +1,9 @@
 package coworking;
 
+import coworking.databases.DB;
+
+import java.sql.Connection;
+import java.sql.SQLException;
 import java.util.Scanner;
 
 /**
@@ -7,11 +11,13 @@ import java.util.Scanner;
  */
 public class MainMenu {
     Scanner scanner;
-    FileSaverReader fileSaverReader;
+    DB db;
+    //FileSaverReader fileSaverReader;
 
-    public MainMenu(Scanner scanner){
+    public MainMenu(Scanner scanner, DB db){
         this.scanner = scanner;
-        this.fileSaverReader = new FileSaverReader();
+        this.db = db;
+        //this.fileSaverReader = new FileSaverReader();
     }
 
     public void showMainMenu() {
@@ -51,7 +57,7 @@ public class MainMenu {
 
             int adminOption = this.scanner.nextInt();
 
-            Admin admin = new Admin(this.fileSaverReader, this.scanner);
+            Admin admin = new Admin(this.db, this.scanner);
             if (adminOption == 1) {
                 admin.addCoworkingSpace();
             }
@@ -82,7 +88,7 @@ public class MainMenu {
                 """);
 
             int userOption = this.scanner.nextInt();
-            Customer customer = new Customer(this.fileSaverReader, this.scanner);
+            Customer customer = new Customer(this.db, this.scanner);
 
             if (userOption ==1) {
                 customer.browseAvailableSpaces();
