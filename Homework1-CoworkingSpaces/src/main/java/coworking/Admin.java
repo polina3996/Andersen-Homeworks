@@ -108,10 +108,6 @@ public class Admin {
                 this.scanner.nextLine();
                 continue;
             }
-//            catch (NonPresentException e) {
-//                System.out.println(e.getMessage());
-//                continue; //caught an Exception - > again asks for id
-//            }
             break; // coworking exists and id is a number-> no exception -> stops asking for id and accepts last one
         }
         int finalId = id;
@@ -159,17 +155,12 @@ public class Admin {
                     System.out.println("No workspaces with such id. Please enter another one: ");
                     continue;
                 }
-                //CheckMethods.checkCoworkPresence(id, this.workspaceArray);
             }
             catch (InputMismatchException e) {
                 System.out.println("This is not a number!");
                 this.scanner.nextLine();
                 continue;
             }
-//            catch (NonPresentException e) {
-//                System.out.println(e.getMessage());
-//                continue; //caught an Exception - > again asks for id
-//            }
             break; // coworking exists -> no exception -> stops asking for id and accepts last one
         }
         System.out.println("Type in the new id: ");
@@ -254,11 +245,6 @@ public class Admin {
                 System.out.println("No such reservation. Please enter another one: ");
                 continue;
             }
-                //CheckMethods.checkReservPresence(id, this.reservationsArray);
-//            catch (NonPresentException e) {
-//                System.out.println(e.getMessage());
-//                continue; //caught an Exception - > again asks for id
-//            }
             break; // coworking exists -> no exception -> stops asking for id and accepts last one
         }
 

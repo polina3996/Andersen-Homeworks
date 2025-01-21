@@ -64,17 +64,12 @@ public class Customer {
                         System.out.println("No such coworking space. Please enter another one: ");
                         continue;
                     }
-                    //CheckMethods.checkCoworkPresence(id, availableWorkspaces);
                 }
                 catch (InputMismatchException e) {
                     System.out.println("It's not a number!");
                     this.scanner.nextLine();
                     continue;
                 }
-//                catch (NonPresentException e) {
-//                    System.out.println(e.getMessage());
-//                    continue; //caught an Exception - > again asks for id
-//                }
                 break; // id is unique and number -> no exception -> stops asking for id and accepts last one
             }
 
@@ -181,11 +176,4 @@ public class Customer {
         }
     }
 }
-
-                //CheckMethods.checkReservPresence(id, this.reservationsArray);
-//            catch (NonPresentException e) {
-//                System.out.println(e.getMessage());
-//                continue; //caught an Exception - > again asks for id
-//            }
-             // reservation exists -> no exception -> stops asking for id and accepts last one
 
