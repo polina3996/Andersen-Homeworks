@@ -1,5 +1,7 @@
 package coworking;
 import coworking.databases.DB;
+import coworking.databases.models.Reservation;
+import coworking.databases.models.Workspace;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;

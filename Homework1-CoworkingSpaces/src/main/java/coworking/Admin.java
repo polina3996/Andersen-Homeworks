@@ -1,23 +1,31 @@
 package coworking;
 
-import coworking.databases.DB;
-
-import java.sql.SQLException;
-import java.util.ArrayList;
+import coworking.databases.DAO.ReservationDAO;
+import coworking.databases.DAO.WorkspaceDAO;
+import coworking.databases.models.Reservation;
+import coworking.databases.models.Workspace;
+import coworking.databases.service.ReservationService;
 import java.util.InputMismatchException;
+import java.util.List;
 import java.util.Scanner;
 
 /**
  * Manages spaces and view all bookings
  * Add, remove or update coworking spaces
  */
+
+
 public class Admin {
     Scanner scanner;
-    DB db;
+    WorkspaceDAO workspaceDAO;
+    ReservationDAO reservationDAO;
+    ReservationService reservationService;
 
-    public Admin(DB db, Scanner scanner) {
+    public Admin(Scanner scanner, WorkspaceDAO workspaceDAO, ReservationDAO reservationDAO, ReservationService reservationService) {
          this.scanner = scanner;
-         this.db = db;
+         this.workspaceDAO = workspaceDAO;
+         this.reservationDAO = reservationDAO;
+         this.reservationService = reservationService;
     }
 
     public void addCoworkingSpace() {
@@ -39,39 +47,49 @@ public class Admin {
             break; // price is number -> no exception -> stops asking for price and accepts last one
         }
 
-        int workspacesAdded = this.db.insertIntoWorkspaces(type, price);
+        Workspace newWorkspace = new Workspace(type, price);
+        this.workspaceDAO.save(newWorkspace);
         System.out.println("New coworking space added successfully!");
     }
 
-    public boolean browseCoworkingSpaces(){
+    public List<Workspace> browseCoworkingSpaces(){
         try {
-            ArrayList<Workspace> workspaces = this.db.selectFromWorkspaces();
+            List<Workspace> workspaces = this.workspaceDAO.findAll();
             CheckMethods.checkEmptiness(workspaces, "coworking spaces");
             System.out.println("Here are all coworking spaces :");
             for (Workspace item : workspaces) {
                 System.out.println(item);
             }
+            return workspaces;
         }
-        catch (CheckEmptinessException | SQLException e) {
+        catch (CheckEmptinessException e) {
             System.out.println(e.getMessage());
-            return false;
+            return null;
         }
-        return true;
+
     }
 
     public void removeCoworkingSpace() {
-        if (!browseCoworkingSpaces()){
+        List<Workspace> workspaces = browseCoworkingSpaces();
+        if (workspaces == null){
             return;
         }
+
         System.out.println("Type in the id of coworking space you want to remove: ");
         System.out.println("id(number) - ");
+        Workspace workspacesRemoved = null;
         int id;
 
         while (true) {
             try {
                 id = this.scanner.nextInt();
-                int workspacesRemoved = this.db.removeFromWorkspaces(id);
-                if (workspacesRemoved == 0){
+                for (Workspace workspace: workspaces){
+                    if (workspace.getId() == id){
+                        workspacesRemoved = workspace;
+                        break;
+                    }
+                }
+                if (workspacesRemoved == null){
                     System.out.println("No such coworking space. Please enter another one: ");
                     continue;
                 }
@@ -88,13 +106,15 @@ public class Admin {
             }
             break; // coworking exists and id is a number-> no exception -> stops asking for id and accepts last one
         }
+
+        this.workspaceDAO.delete(workspacesRemoved);
         System.out.printf("Coworking space and associated reservation %d removed successfully", id);
     }
 
 
-    public ArrayList<Reservation> viewAllReservations() {
+    public List<Reservation> viewAllReservations() {
         try {
-            ArrayList<Reservation> reservations = this.db.selectFromReservations();
+            List<Reservation> reservations = this.reservationDAO.findReservations();
             CheckMethods.checkEmptiness(reservations, "reservations");
             System.out.println("Here are all reservations :");
             for (Reservation item : reservations) {
@@ -104,25 +124,30 @@ public class Admin {
         }
         catch (CheckEmptinessException | NullPointerException e) {
             System.out.println(e.getMessage());
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
         }
         return null;
     }
 
 
     public void updateCoworkingSpace() {
-        if (!browseCoworkingSpaces()){
+        List<Workspace> workspaces = browseCoworkingSpaces();
+        if (workspaces == null){
             return;
         }
+
         System.out.println("Type in the id of coworking space you want to update: ");
         System.out.println("id(number) - ");
+        Workspace workspaceToBeUpdated = null;
         int id;
         while (true) {
             try {
                 id = this.scanner.nextInt();
-                Workspace workspaceToBeUpdated = this.db.selectFromWorkspacesById(id);
-
+                for (Workspace workspace : workspaces){
+                    if (workspace.getId() == id){
+                        workspaceToBeUpdated = workspace;
+                        break;
+                    }
+                }
                 if (workspaceToBeUpdated == null) {
                     System.out.println("No such workspaces. Please enter another one: ");
                     continue;
@@ -131,7 +156,7 @@ public class Admin {
                 System.out.println("No such workspace. Please enter another one: ");
                 continue;
             }
-            catch (InputMismatchException | SQLException e) {
+            catch (InputMismatchException e) {
                 System.out.println("This is not a number!");
                 this.scanner.nextLine();
                 continue;
@@ -155,17 +180,18 @@ public class Admin {
             break; // newPrice is number -> no exception -> stops asking for price and accepts last one
         }
 
-        int workspacesUpdated = this.db.updateWorkspace(newType, newPrice, id);
+        workspaceToBeUpdated.setType(newType);
+        workspaceToBeUpdated.setPrice(newPrice);
+        this.workspaceDAO.update(workspaceToBeUpdated);
         System.out.println("Coworking space changed successfully");
         }
 
     public void removeReservation(){
-        ArrayList<Reservation> reservations = viewAllReservations();
+        List<Reservation> reservations = viewAllReservations();
         if (reservations == null) {
             return;
         }
 
-        int workspaceToBeUpdatedId = -1;
         System.out.println("Choose the reservation you want to remove by id: ");
         System.out.println("id - ");
         int id;
@@ -176,7 +202,6 @@ public class Admin {
                 for (Reservation reservation : reservations) {
                     if (reservation.getId() == id) {
                         reservationToBeCancelled = reservation;
-                        workspaceToBeUpdatedId = reservationToBeCancelled.getWorkspaceId();
                         break;
                     }
                 }
@@ -191,9 +216,7 @@ public class Admin {
             }
             break;
         }
-        int workspaceUpdated = this.db.updateAvailabilityStatus(true, workspaceToBeUpdatedId);
-        int reservationsRemoved = this.db.removeFromMyReservations(reservationToBeCancelled.getId());
-
+        this.reservationService.removeReservation(reservationToBeCancelled);
         System.out.println("Reservation was cancelled successfully!");
     }
 }
