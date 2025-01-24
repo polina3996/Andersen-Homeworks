@@ -1,9 +1,14 @@
-package coworking;
-import coworking.databases.DAO.ReservationDAO;
-import coworking.databases.DAO.UserDAO;
-import coworking.databases.DAO.WorkspaceDAO;
-import coworking.databases.models.Reservation;
-import coworking.databases.models.Workspace;
+package coworking.controller;
+import coworking.CheckEmptinessException;
+import coworking.CheckMethods;
+import coworking.repository.ReservationRepository;
+import coworking.repository.WorkspaceRepository;
+import coworking.repository.UserRepository;
+import coworking.model.Reservation;
+import coworking.model.Workspace;
+import coworking.service.ReservationService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
 
 import java.util.*;
 
@@ -15,28 +20,28 @@ import java.util.*;
  * - see their reservations and cancel them by selecting the reservation ID
  */
 
-import coworking.databases.service.ReservationService;
 
 
-
-public class Customer {
+@Controller
+public class CustomerController {
     Scanner scanner;
-    private final WorkspaceDAO workspaceDAO;
-    private final ReservationDAO reservationDAO;
+    private final WorkspaceRepository workspaceRepository;
+    private final ReservationRepository reservationRepository;
     private final ReservationService reservationService;
-    private final UserDAO userDAO;
+    private final UserRepository userRepository;
 
-    public Customer(Scanner scanner, WorkspaceDAO workspaceDAO, ReservationDAO reservationDAO, ReservationService reservationService, UserDAO userDAO) {
+    @Autowired
+    public CustomerController(Scanner scanner, WorkspaceRepository workspaceRepository, ReservationRepository reservationRepository, ReservationService reservationService, UserRepository userRepository) {
         this.scanner = scanner;
-        this.workspaceDAO = workspaceDAO;
-        this.reservationDAO = reservationDAO;
+        this.workspaceRepository = workspaceRepository;
+        this.reservationRepository = reservationRepository;
         this.reservationService = reservationService;
-        this.userDAO = userDAO;
+        this.userRepository = userRepository;
     }
 
     public List<Workspace> browseAvailableSpaces() {
         try{
-            List<Workspace> availableWorkspaces = this.workspaceDAO.findAvailableWorkspaces();
+            List<Workspace> availableWorkspaces = this.workspaceRepository.findAvailableWorkspaces();
             System.out.println("Here are available coworking spaces for you:");
             for (Workspace workspace:availableWorkspaces){
                 System.out.println(workspace);
@@ -105,7 +110,7 @@ public class Customer {
             this.scanner.nextLine();
         }
 
-        this.reservationService.makeReservation(this.userDAO, workspaceToBeReserved, name, start, end);
+        this.reservationService.makeReservation(this.userRepository, workspaceToBeReserved, name, start, end);
         System.out.println("New reservation was made successfully!");
     }
 
@@ -117,7 +122,7 @@ public class Customer {
         List<Reservation> myReservations = null;
         try {
             System.out.println("Here are your reservations: ");
-            myReservations = this.reservationDAO.findMyReservations(name);
+            myReservations = this.reservationRepository.findMyReservations(name);
             if (myReservations == null || myReservations.isEmpty()) {
                 System.out.println("You have no reservations yet");
                 return new ArrayList<>();
@@ -163,7 +168,7 @@ public class Customer {
             }
             break; // id exists and it's number -> no exception -> stops asking for id and accepts last one
         }
-        this.reservationService.cancelMyReservation(reservationToBeCancelled);
+        this.reservationService.removeReservation(reservationToBeCancelled);
         System.out.println("Your reservation was cancelled successfully!");
 
     }

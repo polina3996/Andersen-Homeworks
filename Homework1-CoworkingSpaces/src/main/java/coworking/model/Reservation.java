@@ -1,4 +1,4 @@
-package coworking.databases.models;
+package coworking.model;
 
 import jakarta.persistence.*;
 

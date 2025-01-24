@@ -1,11 +1,15 @@
-package coworking;
+package coworking.controller;
 
-import coworking.databases.DAO.ReservationDAO;
-import coworking.databases.DAO.UserDAO;
-import coworking.databases.DAO.WorkspaceDAO;
-import coworking.databases.models.Reservation;
-import coworking.databases.models.Workspace;
-import coworking.databases.service.ReservationService;
+import coworking.CheckEmptinessException;
+import coworking.CheckMethods;
+import coworking.repository.UserRepository;
+import coworking.service.ReservationService;
+import coworking.repository.ReservationRepository;
+import coworking.repository.WorkspaceRepository;
+import coworking.model.Reservation;
+import coworking.model.Workspace;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
 
 import java.util.ArrayList;
 import java.util.InputMismatchException;
@@ -17,20 +21,21 @@ import java.util.Scanner;
  * Add, remove or update coworking spaces
  */
 
-
-public class Admin {
+@Controller
+public class AdminController {
     Scanner scanner;
-    private final WorkspaceDAO workspaceDAO;
-    private final ReservationDAO reservationDAO;
+    private final WorkspaceRepository workspaceRepository;
+    private final ReservationRepository reservationRepository;
     private final ReservationService reservationService;
-    private final UserDAO userDAO;
+    private final UserRepository userRepository;
 
-    public Admin(Scanner scanner, WorkspaceDAO workspaceDAO, ReservationDAO reservationDAO, ReservationService reservationService, UserDAO userDAO) {
+    @Autowired
+    public AdminController(Scanner scanner, WorkspaceRepository workspaceRepository, ReservationRepository reservationRepository, ReservationService reservationService, UserRepository userRepository) {
          this.scanner = scanner;
-         this.workspaceDAO = workspaceDAO;
-         this.reservationDAO = reservationDAO;
+         this.workspaceRepository = workspaceRepository;
+         this.reservationRepository = reservationRepository;
          this.reservationService = reservationService;
-         this.userDAO = userDAO;
+         this.userRepository = userRepository;
     }
 
     public void addCoworkingSpace() {
@@ -53,13 +58,13 @@ public class Admin {
         }
 
         Workspace newWorkspace = new Workspace(type, price);
-        this.workspaceDAO.save(newWorkspace);
+        this.workspaceRepository.save(newWorkspace);
         System.out.println("New coworking space added successfully!");
     }
 
     public List<Workspace> browseCoworkingSpaces(){
         try {
-            List<Workspace> workspaces = this.workspaceDAO.findAll();
+            List<Workspace> workspaces = this.workspaceRepository.findAll();
             CheckMethods.checkEmptiness(workspaces, "coworking spaces");
             System.out.println("Here are all coworking spaces :");
             for (Workspace item : workspaces) {
@@ -112,14 +117,14 @@ public class Admin {
             break; // coworking exists and id is a number-> no exception -> stops asking for id and accepts last one
         }
 
-        this.workspaceDAO.delete(workspacesRemoved);
+        this.workspaceRepository.delete(workspacesRemoved);
         System.out.printf("Coworking space and associated reservation %d removed successfully", id);
     }
 
 
     public List<Reservation> viewAllReservations() {
         try {
-            List<Reservation> reservations = this.reservationDAO.findReservations();
+            List<Reservation> reservations = this.reservationRepository.findReservations();
             CheckMethods.checkEmptiness(reservations, "reservations");
             System.out.println("Here are all reservations :");
             for (Reservation item : reservations) {
@@ -187,7 +192,7 @@ public class Admin {
 
         workspaceToBeUpdated.setType(newType);
         workspaceToBeUpdated.setPrice(newPrice);
-        this.workspaceDAO.update(workspaceToBeUpdated);
+        this.workspaceRepository.update(workspaceToBeUpdated);
         System.out.println("Coworking space changed successfully");
         }
 
@@ -200,17 +205,17 @@ public class Admin {
         System.out.println("Choose the reservation you want to remove by id: ");
         System.out.println("id - ");
         int id;
-        Reservation reservationToBeCancelled = null;
+        Reservation reservationToBeRemoved = null;
         while (true) {
             try {
                 id = this.scanner.nextInt();
                 for (Reservation reservation : reservations) {
                     if (reservation.getId() == id) {
-                        reservationToBeCancelled = reservation;
+                        reservationToBeRemoved = reservation;
                         break;
                     }
                 }
-                if (reservationToBeCancelled == null) {
+                if (reservationToBeRemoved == null) {
                     System.out.println("No such reservation. Please enter another one: ");
                     continue;
                 }
@@ -221,7 +226,7 @@ public class Admin {
             }
             break;
         }
-        this.reservationService.cancelMyReservation(reservationToBeCancelled);
+        this.reservationService.removeReservation(reservationToBeRemoved);
         System.out.println("Reservation was cancelled successfully!");
     }
 }

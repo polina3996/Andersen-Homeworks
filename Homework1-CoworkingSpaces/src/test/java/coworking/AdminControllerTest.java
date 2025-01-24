@@ -1,11 +1,11 @@
 package coworking;
-import coworking.databases.DAO.ReservationDAO;
-import coworking.databases.DAO.UserDAO;
-import coworking.databases.DAO.WorkspaceDAO;
-import coworking.databases.models.Reservation;
-import coworking.databases.models.User;
-import coworking.databases.models.Workspace;
-import coworking.databases.service.ReservationService;
+import coworking.controller.AdminController;
+import coworking.repository.ReservationRepository;
+import coworking.repository.WorkspaceRepository;
+import coworking.model.Reservation;
+import coworking.model.User;
+import coworking.model.Workspace;
+import coworking.service.ReservationService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.*;
@@ -19,12 +19,12 @@ import static org.junit.Assert.assertNotNull;
 import static org.mockito.Mockito.*;
 
 
-class AdminTest {
-    private Admin admin;
+class AdminControllerTest {
+    private AdminController adminController;
     @Captor ArgumentCaptor<Workspace> workspaceCaptor;
     @Mock private Scanner mockScanner;
-    @Mock private WorkspaceDAO mockWorkspaceDAO;
-    @Mock private ReservationDAO mockReservationDAO;
+    @Mock private WorkspaceRepository mockWorkspaceRepository;
+    @Mock private ReservationRepository mockReservationRepository;
     @Mock private ReservationService mockReservationService;
     @Mock private UserDAO mockUserDAO;
 
@@ -32,7 +32,7 @@ class AdminTest {
     @BeforeEach
     void setUp() {
         MockitoAnnotations.openMocks(this);
-        admin = new Admin(mockScanner, mockWorkspaceDAO, mockReservationDAO, mockReservationService, mockUserDAO);
+        adminController = new AdminController(mockScanner, mockWorkspaceRepository, mockReservationRepository, mockReservationService);
     }
 
     @Test
@@ -44,13 +44,13 @@ class AdminTest {
                 .thenReturn(50.0);
 
         // When
-        admin.addCoworkingSpace();
+        adminController.addCoworkingSpace();
 
         // Then
         verify(mockScanner, times(1)).next();
         verify(mockScanner, times(2)).nextDouble();
 
-        verify(mockWorkspaceDAO).save(workspaceCaptor.capture());
+        verify(mockWorkspaceRepository).save(workspaceCaptor.capture());
         Workspace capturedWorkspace = workspaceCaptor.getValue();
         assertEquals("Art", capturedWorkspace.getType());
         assertEquals(50.00, capturedWorkspace.getPrice(), 0.01);
@@ -67,7 +67,7 @@ class AdminTest {
             );
             List<Workspace> emptyWorkspaces = Collections.emptyList();
 
-            when(mockWorkspaceDAO.findAll())
+            when(mockWorkspaceRepository.findAll())
                     .thenReturn(workspaces)
                     .thenReturn(emptyWorkspaces);
 
@@ -82,8 +82,8 @@ class AdminTest {
                     });
 
             // When
-            List<Workspace> result1 = admin.browseCoworkingSpaces();
-            List<Workspace> result2 = admin.browseCoworkingSpaces();
+            List<Workspace> result1 = adminController.browseCoworkingSpaces();
+            List<Workspace> result2 = adminController.browseCoworkingSpaces();
 
             // Then
             assertNotNull(result1);
@@ -91,7 +91,7 @@ class AdminTest {
             assertEquals("Art", result1.get(0).getType());
             assertTrue(result2.isEmpty());
 
-            verify(mockWorkspaceDAO, times(2)).findAll();
+            verify(mockWorkspaceRepository, times(2)).findAll();
             mockedCheckMethods.verify(() -> CheckMethods.checkEmptiness(any(List.class), eq("coworking spaces")), times(2));
         }
     }
@@ -105,7 +105,7 @@ class AdminTest {
                     new Workspace("Tech", 40.0)
             );
 
-            when(mockWorkspaceDAO.findAll()).thenReturn(workspaces);
+            when(mockWorkspaceRepository.findAll()).thenReturn(workspaces);
 
             mockedCheckMethods
                     .when(() -> CheckMethods.checkEmptiness(any(List.class), eq("coworking spaces")))
@@ -122,11 +122,11 @@ class AdminTest {
                     .thenReturn(0);
 
             // Act
-            admin.removeCoworkingSpace();
+            adminController.removeCoworkingSpace();
 
             // Assert
             verify(mockScanner, times(2)).nextInt();
-            verify(mockWorkspaceDAO, times(1)).delete(workspaces.get(0));
+            verify(mockWorkspaceRepository, times(1)).delete(workspaces.get(0));
             mockedCheckMethods.verify(() -> CheckMethods.checkEmptiness(any(List.class), eq("coworking spaces")), times(1));
 
         }
@@ -153,7 +153,7 @@ class AdminTest {
 
             List<Reservation> emptyReservations = Collections.emptyList();
 
-            when(mockReservationDAO.findReservations())
+            when(mockReservationRepository.findReservations())
                     .thenReturn(reservations)
                     .thenReturn(emptyReservations);
 
@@ -168,8 +168,8 @@ class AdminTest {
                     });
 
             // When
-            List<Reservation> result1 = admin.viewAllReservations();
-            List<Reservation> result2 = admin.viewAllReservations();
+            List<Reservation> result1 = adminController.viewAllReservations();
+            List<Reservation> result2 = adminController.viewAllReservations();
 
             // Then
             assertNotNull(result1);
@@ -178,7 +178,7 @@ class AdminTest {
             assertEquals("Tech", result1.get(1).getWorkspace().getType());
             assertTrue(result2.isEmpty());
 
-            verify(mockReservationDAO, times(2)).findReservations();
+            verify(mockReservationRepository, times(2)).findReservations();
             mockedCheckMethods.verify(() -> CheckMethods.checkEmptiness(any(List.class), eq("reservations")), times(2));
         }
     }
@@ -193,7 +193,7 @@ class AdminTest {
                     new Workspace("Tech", 40.0)
             );
 
-            when(mockWorkspaceDAO.findAll()).thenReturn(workspaces);
+            when(mockWorkspaceRepository.findAll()).thenReturn(workspaces);
 
             mockedCheckMethods
                     .when(() -> CheckMethods.checkEmptiness(any(List.class), eq("coworking spaces")))
@@ -213,13 +213,13 @@ class AdminTest {
 
 
             // Act
-            admin.updateCoworkingSpace();
+            adminController.updateCoworkingSpace();
 
             // Assert
             verify(mockScanner, times(2)).nextInt();
             verify(mockScanner, times(1)).next();
             verify(mockScanner, times(1)).nextDouble();
-            verify(mockWorkspaceDAO, times(1)).update(argThat(updatedWorkspace -> updatedWorkspace.getId() == 0 &&
+            verify(mockWorkspaceRepository, times(1)).update(argThat(updatedWorkspace -> updatedWorkspace.getId() == 0 &&
                     updatedWorkspace.getType().equals("Open") &&
                     updatedWorkspace.getPrice() == 20.0));
             mockedCheckMethods.verify(() -> CheckMethods.checkEmptiness(any(List.class), eq("coworking spaces")), times(1));
@@ -245,7 +245,7 @@ class AdminTest {
             );
 
 
-            when(mockReservationDAO.findReservations()).thenReturn(reservations);
+            when(mockReservationRepository.findReservations()).thenReturn(reservations);
 
             mockedCheckMethods
                     .when(() -> CheckMethods.checkEmptiness(any(List.class), eq("reservations")))
@@ -262,11 +262,11 @@ class AdminTest {
                     .thenReturn(0);
 
             // When
-            admin.removeReservation();
+            adminController.removeReservation();
 
             // Then
             verify(mockScanner, times(2)).nextInt();
-            verify(mockReservationService, times(1)).cancelMyReservation(reservations.get(0));
+            verify(mockReservationService, times(1)).removeReservation(reservations.get(0));
             mockedCheckMethods.verify(() -> CheckMethods.checkEmptiness(any(List.class), eq("reservations")), times(1));
         }
         }

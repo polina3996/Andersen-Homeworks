@@ -1,33 +1,49 @@
 package coworking;
 
 
-import coworking.databases.DAO.ReservationDAO;
-import coworking.databases.DAO.UserDAO;
-import coworking.databases.DAO.WorkspaceDAO;
-import coworking.databases.service.ReservationService;
+import coworking.controller.AdminController;
+import coworking.controller.CustomerController;
+import coworking.repository.ReservationRepository;
+import coworking.repository.UserRepository;
+import coworking.repository.WorkspaceRepository;
+import coworking.service.ReservationService;
+import org.hibernate.annotations.Comment;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
-import java.sql.Connection;
-import java.sql.SQLException;
 import java.util.Scanner;
 
 /**
  * Shows main menu and processes User Input
  */
+@Component
 public class MainMenu {
     Scanner scanner;
-    private final WorkspaceDAO workspaceDAO;
-    private final ReservationDAO reservationDAO;
+    private final WorkspaceRepository workspaceRepository;
+    private final ReservationRepository reservationRepository;
     private final ReservationService reservationService;
-    private final UserDAO userDAO;
+    private final UserRepository userRepository;
+    private final AdminController adminController;
+    private final CustomerController customerController;
 
 
-
-    public MainMenu(Scanner scanner, WorkspaceDAO workspaceDAO, ReservationDAO reservationDAO, ReservationService reservationService, UserDAO userDAO){
+    @Autowired
+    public MainMenu(
+            Scanner scanner,
+            WorkspaceRepository workspaceRepository,
+            ReservationRepository reservationRepository,
+            ReservationService reservationService,
+            UserRepository userRepository,
+            AdminController adminController,
+            CustomerController customerController
+    ) {
         this.scanner = scanner;
-        this.workspaceDAO = workspaceDAO;
-        this.reservationDAO = reservationDAO;
+        this.workspaceRepository = workspaceRepository;
+        this.reservationRepository = reservationRepository;
         this.reservationService = reservationService;
-        this.userDAO = userDAO;
+        this.userRepository = userRepository;
+        this.adminController = adminController;
+        this.customerController = customerController;
     }
 
     public void showMainMenu() {
@@ -67,21 +83,21 @@ public class MainMenu {
 
             int adminOption = this.scanner.nextInt();
 
-            Admin admin = new Admin(this.scanner, this.workspaceDAO, this.reservationDAO, this.reservationService, this.userDAO);
+
             if (adminOption == 1) {
-                admin.addCoworkingSpace();
+                adminController.addCoworkingSpace();
             }
             else if (adminOption == 2) {
-                admin.removeCoworkingSpace();
+                adminController.removeCoworkingSpace();
             }
             else if (adminOption == 3)  {
-                admin.viewAllReservations();
+                adminController.viewAllReservations();
             }
             else if (adminOption == 4)  {
-                admin.updateCoworkingSpace();
+                adminController.updateCoworkingSpace();
             }
             else if (adminOption == 5)  {
-                admin.removeReservation();
+                adminController.removeReservation();
             }
         }
 
@@ -98,19 +114,18 @@ public class MainMenu {
                 """);
 
             int userOption = this.scanner.nextInt();
-            Customer customer = new Customer(this.scanner, this.workspaceDAO, this.reservationDAO, this.reservationService, this.userDAO);
 
             if (userOption ==1) {
-                customer.browseAvailableSpaces();
+                customerController.browseAvailableSpaces();
             }
             else if (userOption ==2) {
-                customer.makeAReservation();
+                customerController.makeAReservation();
             }
             else if (userOption ==3) {
-                customer.viewMyReservations();
+                customerController.viewMyReservations();
             }
             else {
-                customer.cancelMyReservation();
+                customerController.cancelMyReservation();
             }
         }
         return true;
