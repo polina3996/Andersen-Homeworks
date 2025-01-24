@@ -3,7 +3,7 @@ package coworking.databases.models;
 import jakarta.persistence.*;
 
 @Entity
-@Table(name="Users")
+@Table(name="users")
 public class User {
     /**
      * Entity, that represents a table "Users" in database.

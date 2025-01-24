@@ -7,7 +7,7 @@ import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 
 @Entity
-@Table(name="Reservations")
+@Table(name="reservations")
 public class Reservation implements Serializable {
     /**
      * Entity, that represents a table "Reservations" in database.

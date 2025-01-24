@@ -14,5 +14,8 @@ public class HQLQueries {
             WHERE r.user.name = :name""";
     public static final String selectFromWorkspTableSQL = """
             FROM Workspace""";
+    public static final String selectFromUsersTableSQL = """
+            FROM User u
+            WHERE u.name = :name""";
 
 }

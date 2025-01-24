@@ -1,6 +1,7 @@
 package coworking;
 
 import coworking.databases.DAO.ReservationDAO;
+import coworking.databases.DAO.UserDAO;
 import coworking.databases.DAO.WorkspaceDAO;
 import coworking.databases.HibernateSessionUtil;
 import coworking.databases.service.ReservationService;
@@ -30,8 +31,9 @@ public class CoworkingSpaceReservationApp {
         WorkspaceDAO workspaceDAO = new WorkspaceDAO(session);
         ReservationDAO reservationDAO = new ReservationDAO(session);
         ReservationService reservationService = new ReservationService(session);
+        UserDAO userDAO = new UserDAO(session);
 
-        MainMenu mainMenu = new MainMenu(scanner, workspaceDAO, reservationDAO, reservationService);
+        MainMenu mainMenu = new MainMenu(scanner, workspaceDAO, reservationDAO, reservationService, userDAO);
         do {
             mainMenu.showMainMenu();
         } while (mainMenu.processUserInput());

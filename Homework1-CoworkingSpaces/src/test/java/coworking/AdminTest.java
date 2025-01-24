@@ -1,5 +1,6 @@
 package coworking;
 import coworking.databases.DAO.ReservationDAO;
+import coworking.databases.DAO.UserDAO;
 import coworking.databases.DAO.WorkspaceDAO;
 import coworking.databases.models.Reservation;
 import coworking.databases.models.User;
@@ -25,12 +26,13 @@ class AdminTest {
     @Mock private WorkspaceDAO mockWorkspaceDAO;
     @Mock private ReservationDAO mockReservationDAO;
     @Mock private ReservationService mockReservationService;
+    @Mock private UserDAO mockUserDAO;
 
 
     @BeforeEach
     void setUp() {
         MockitoAnnotations.openMocks(this);
-        admin = new Admin(mockScanner, mockWorkspaceDAO, mockReservationDAO, mockReservationService);
+        admin = new Admin(mockScanner, mockWorkspaceDAO, mockReservationDAO, mockReservationService, mockUserDAO);
     }
 
     @Test
@@ -87,7 +89,7 @@ class AdminTest {
             assertNotNull(result1);
             assertFalse(result1.isEmpty());
             assertEquals("Art", result1.get(0).getType());
-            assertNull(result2);
+            assertTrue(result2.isEmpty());
 
             verify(mockWorkspaceDAO, times(2)).findAll();
             mockedCheckMethods.verify(() -> CheckMethods.checkEmptiness(any(List.class), eq("coworking spaces")), times(2));
@@ -174,7 +176,7 @@ class AdminTest {
             assertFalse(result1.isEmpty());
             assertEquals("John", result1.get(0).getUser().getName());
             assertEquals("Tech", result1.get(1).getWorkspace().getType());
-            assertNull(result2);
+            assertTrue(result2.isEmpty());
 
             verify(mockReservationDAO, times(2)).findReservations();
             mockedCheckMethods.verify(() -> CheckMethods.checkEmptiness(any(List.class), eq("reservations")), times(2));
@@ -264,7 +266,7 @@ class AdminTest {
 
             // Then
             verify(mockScanner, times(2)).nextInt();
-            verify(mockReservationService, times(1)).removeReservation(reservations.get(0));
+            verify(mockReservationService, times(1)).cancelMyReservation(reservations.get(0));
             mockedCheckMethods.verify(() -> CheckMethods.checkEmptiness(any(List.class), eq("reservations")), times(1));
         }
         }

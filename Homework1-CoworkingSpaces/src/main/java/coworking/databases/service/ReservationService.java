@@ -1,5 +1,6 @@
 package coworking.databases.service;
 
+import coworking.databases.DAO.UserDAO;
 import coworking.databases.models.Reservation;
 import coworking.databases.models.User;
 import coworking.databases.models.Workspace;
@@ -17,15 +18,19 @@ public class ReservationService {
         this.session = session;
     }
 
-    public void makeReservation(Workspace workspaceToBeReserved, String name, String start, String end) {
-        User user = new User(name);
+    public void makeReservation(UserDAO userDAO, Workspace workspaceToBeReserved, String name, String start, String end) {
+        Transaction transaction = session.beginTransaction();
+
+        User user = userDAO.findUser(name);
+        if (user == null){
+            user = new User(name);
+            session.save(user); //userFromTable is transient(save it first, because we can't save reservation without userFromTable)
+        }
 
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy");
         Reservation reservation = new Reservation(workspaceToBeReserved, user, LocalDate.parse(start, formatter), LocalDate.parse(end, formatter));
         workspaceToBeReserved.setAvailabilityStatus(false);
 
-        Transaction transaction = session.beginTransaction();
-        session.save(user); //user is transient(save it first, because we can't save reservation without user)
         session.save(reservation);
         session.update(workspaceToBeReserved);
         transaction.commit();
@@ -37,16 +42,6 @@ public class ReservationService {
 
         Transaction transaction = session.beginTransaction();
         session.delete(reservationToBeCancelled);
-        session.update(workspace);
-        transaction.commit();
-    }
-
-    public void removeReservation(Reservation reservation) {
-        Workspace workspace = reservation.getWorkspace();
-        workspace.setAvailabilityStatus(true);
-
-        Transaction transaction = session.beginTransaction();
-        session.delete(reservation);
         session.update(workspace);
         transaction.commit();
     }

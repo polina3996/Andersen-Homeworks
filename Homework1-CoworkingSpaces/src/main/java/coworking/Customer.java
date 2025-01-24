@@ -1,5 +1,6 @@
 package coworking;
 import coworking.databases.DAO.ReservationDAO;
+import coworking.databases.DAO.UserDAO;
 import coworking.databases.DAO.WorkspaceDAO;
 import coworking.databases.models.Reservation;
 import coworking.databases.models.Workspace;
@@ -20,15 +21,17 @@ import coworking.databases.service.ReservationService;
 
 public class Customer {
     Scanner scanner;
-    WorkspaceDAO workspaceDAO;
-    ReservationDAO reservationDAO;
-    ReservationService reservationService;
+    private final WorkspaceDAO workspaceDAO;
+    private final ReservationDAO reservationDAO;
+    private final ReservationService reservationService;
+    private final UserDAO userDAO;
 
-    public Customer(Scanner scanner, WorkspaceDAO workspaceDAO, ReservationDAO reservationDAO, ReservationService reservationService) {
+    public Customer(Scanner scanner, WorkspaceDAO workspaceDAO, ReservationDAO reservationDAO, ReservationService reservationService, UserDAO userDAO) {
         this.scanner = scanner;
         this.workspaceDAO = workspaceDAO;
         this.reservationDAO = reservationDAO;
         this.reservationService = reservationService;
+        this.userDAO = userDAO;
     }
 
     public List<Workspace> browseAvailableSpaces() {
@@ -43,12 +46,12 @@ public class Customer {
         catch (NullPointerException e){
             System.out.println("No available workspaces yet");
     }
-        return null;
+        return new ArrayList<>();
     }
 
     public void makeAReservation() {
         List<Workspace> availableWorkspaces = browseAvailableSpaces();
-        if (availableWorkspaces == null){
+        if (availableWorkspaces.isEmpty()){
             return;
         }
 
@@ -102,7 +105,7 @@ public class Customer {
             this.scanner.nextLine();
         }
 
-        this.reservationService.makeReservation(workspaceToBeReserved, name, start, end);
+        this.reservationService.makeReservation(this.userDAO, workspaceToBeReserved, name, start, end);
         System.out.println("New reservation was made successfully!");
     }
 
@@ -117,7 +120,7 @@ public class Customer {
             myReservations = this.reservationDAO.findMyReservations(name);
             if (myReservations == null || myReservations.isEmpty()) {
                 System.out.println("You have no reservations yet");
-                return null;
+                return new ArrayList<>();
             }
             for (Reservation item : myReservations) {
                 System.out.println(item);
@@ -130,7 +133,7 @@ public class Customer {
 
     public void cancelMyReservation() {
         List<Reservation> myReservations = viewMyReservations();
-        if (myReservations == null) {
+        if (myReservations.isEmpty()) {
             return;
         }
 

@@ -1,10 +1,13 @@
 package coworking;
 
 import coworking.databases.DAO.ReservationDAO;
+import coworking.databases.DAO.UserDAO;
 import coworking.databases.DAO.WorkspaceDAO;
 import coworking.databases.models.Reservation;
 import coworking.databases.models.Workspace;
 import coworking.databases.service.ReservationService;
+
+import java.util.ArrayList;
 import java.util.InputMismatchException;
 import java.util.List;
 import java.util.Scanner;
@@ -17,15 +20,17 @@ import java.util.Scanner;
 
 public class Admin {
     Scanner scanner;
-    WorkspaceDAO workspaceDAO;
-    ReservationDAO reservationDAO;
-    ReservationService reservationService;
+    private final WorkspaceDAO workspaceDAO;
+    private final ReservationDAO reservationDAO;
+    private final ReservationService reservationService;
+    private final UserDAO userDAO;
 
-    public Admin(Scanner scanner, WorkspaceDAO workspaceDAO, ReservationDAO reservationDAO, ReservationService reservationService) {
+    public Admin(Scanner scanner, WorkspaceDAO workspaceDAO, ReservationDAO reservationDAO, ReservationService reservationService, UserDAO userDAO) {
          this.scanner = scanner;
          this.workspaceDAO = workspaceDAO;
          this.reservationDAO = reservationDAO;
          this.reservationService = reservationService;
+         this.userDAO = userDAO;
     }
 
     public void addCoworkingSpace() {
@@ -64,14 +69,14 @@ public class Admin {
         }
         catch (CheckEmptinessException e) {
             System.out.println(e.getMessage());
-            return null;
+            return new ArrayList<>();
         }
 
     }
 
     public void removeCoworkingSpace() {
         List<Workspace> workspaces = browseCoworkingSpaces();
-        if (workspaces == null){
+        if (workspaces.isEmpty()){
             return;
         }
 
@@ -125,13 +130,13 @@ public class Admin {
         catch (CheckEmptinessException | NullPointerException e) {
             System.out.println(e.getMessage());
         }
-        return null;
+        return new ArrayList<>();
     }
 
 
     public void updateCoworkingSpace() {
         List<Workspace> workspaces = browseCoworkingSpaces();
-        if (workspaces == null){
+        if (workspaces.isEmpty()){
             return;
         }
 
@@ -188,7 +193,7 @@ public class Admin {
 
     public void removeReservation(){
         List<Reservation> reservations = viewAllReservations();
-        if (reservations == null) {
+        if (reservations.isEmpty()) {
             return;
         }
 
@@ -216,7 +221,7 @@ public class Admin {
             }
             break;
         }
-        this.reservationService.removeReservation(reservationToBeCancelled);
+        this.reservationService.cancelMyReservation(reservationToBeCancelled);
         System.out.println("Reservation was cancelled successfully!");
     }
 }

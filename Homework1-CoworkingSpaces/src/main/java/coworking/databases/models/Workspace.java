@@ -4,7 +4,7 @@ import java.io.Serializable;
 import jakarta.persistence.*;
 
 @Entity
-@Table(name="Workspaces")
+@Table(name="workspaces")
 public class Workspace implements Serializable {
     /**
      * Entity, that represents a table "Workspaces" in database.

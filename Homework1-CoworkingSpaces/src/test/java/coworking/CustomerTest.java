@@ -1,5 +1,6 @@
 package coworking;
 import coworking.databases.DAO.ReservationDAO;
+import coworking.databases.DAO.UserDAO;
 import coworking.databases.DAO.WorkspaceDAO;
 import coworking.databases.models.Reservation;
 import coworking.databases.models.User;
@@ -22,8 +23,6 @@ import static org.mockito.Mockito.*;
 
 public class CustomerTest {
     private Customer customer;
-    @Captor
-    ArgumentCaptor<Workspace> workspaceCaptor;
     @Mock
     private Scanner mockScanner;
     @Mock
@@ -32,12 +31,14 @@ public class CustomerTest {
     private ReservationDAO mockReservationDAO;
     @Mock
     private ReservationService mockReservationService;
+    @Mock
+    private UserDAO mockUserDAO;
 
 
     @BeforeEach
     void setUp() {
         MockitoAnnotations.openMocks(this);
-        customer = new Customer(mockScanner, mockWorkspaceDAO, mockReservationDAO, mockReservationService);
+        customer = new Customer(mockScanner, mockWorkspaceDAO, mockReservationDAO, mockReservationService, mockUserDAO);
     }
 
     @Test
@@ -62,7 +63,7 @@ public class CustomerTest {
         assertNotNull(result1);
         assertFalse(result1.isEmpty());
         assertEquals("Art", result1.get(0).getType());
-        assertEquals(result2, emptyWorkspaces);
+        assertTrue(result2.isEmpty());
 
         verify(mockWorkspaceDAO, times(2)).findAvailableWorkspaces();
     }
@@ -107,7 +108,7 @@ public class CustomerTest {
             // Then
             verify(mockScanner, times(2)).nextInt();
             verify(mockScanner, times(3)).next();
-            verify(mockReservationService, times(1)).makeReservation(workspaces.get(0), "John", "03-03-2025", "05-03-2025");
+            verify(mockReservationService, times(1)).makeReservation(mockUserDAO, workspaces.get(0), "John", "03-03-2025", "05-03-2025");
             mockedCheckMethods.verify(() -> CheckMethods.checkDate(anyString(), anyString()), times(2));
         }
     }
@@ -146,7 +147,7 @@ public class CustomerTest {
         assertFalse(result1.isEmpty());
         assertEquals("John", result1.get(0).getUser().getName());
         assertEquals("Tech", result1.get(1).getWorkspace().getType());
-        assertNull(result2);
+        assertTrue(result2.isEmpty());
 
         verify(mockReservationDAO, times(2)).findMyReservations("John");
     }
