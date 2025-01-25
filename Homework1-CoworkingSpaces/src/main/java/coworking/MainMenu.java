@@ -7,7 +7,6 @@ import coworking.repository.ReservationRepository;
 import coworking.repository.UserRepository;
 import coworking.repository.WorkspaceRepository;
 import coworking.service.ReservationService;
-import org.hibernate.annotations.Comment;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -18,7 +17,7 @@ import java.util.Scanner;
  */
 @Component
 public class MainMenu {
-    Scanner scanner;
+    private final Scanner scanner;
     private final WorkspaceRepository workspaceRepository;
     private final ReservationRepository reservationRepository;
     private final ReservationService reservationService;
@@ -85,19 +84,19 @@ public class MainMenu {
 
 
             if (adminOption == 1) {
-                adminController.addCoworkingSpace();
+                this.adminController.addCoworkingSpace();
             }
             else if (adminOption == 2) {
-                adminController.removeCoworkingSpace();
+                this.adminController.removeCoworkingSpace();
             }
             else if (adminOption == 3)  {
-                adminController.viewAllReservations();
+                this.adminController.viewAllReservations();
             }
             else if (adminOption == 4)  {
-                adminController.updateCoworkingSpace();
+                this.adminController.updateCoworkingSpace();
             }
             else if (adminOption == 5)  {
-                adminController.removeReservation();
+                this.adminController.removeReservation();
             }
         }
 
@@ -116,16 +115,16 @@ public class MainMenu {
             int userOption = this.scanner.nextInt();
 
             if (userOption ==1) {
-                customerController.browseAvailableSpaces();
+                this.customerController.browseAvailableSpaces();
             }
             else if (userOption ==2) {
-                customerController.makeAReservation();
+                this.customerController.makeAReservation();
             }
             else if (userOption ==3) {
-                customerController.viewMyReservations();
+                this.customerController.viewMyReservations();
             }
             else {
-                customerController.cancelMyReservation();
+                this.customerController.cancelMyReservation();
             }
         }
         return true;

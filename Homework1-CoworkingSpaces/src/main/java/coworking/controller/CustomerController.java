@@ -24,7 +24,7 @@ import java.util.*;
 
 @Controller
 public class CustomerController {
-    Scanner scanner;
+    private final Scanner scanner;
     private final WorkspaceRepository workspaceRepository;
     private final ReservationRepository reservationRepository;
     private final ReservationService reservationService;

@@ -23,7 +23,7 @@ import java.util.Scanner;
 
 @Controller
 public class AdminController {
-    Scanner scanner;
+    private final Scanner scanner;
     private final WorkspaceRepository workspaceRepository;
     private final ReservationRepository reservationRepository;
     private final ReservationService reservationService;

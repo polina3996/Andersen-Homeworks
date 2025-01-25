@@ -1,13 +1,5 @@
 package coworking.config;
-
-import coworking.controller.AdminController;
-import coworking.controller.CustomerController;
-import coworking.repository.ReservationRepository;
-import coworking.repository.UserRepository;
-import coworking.repository.WorkspaceRepository;
-import coworking.service.ReservationService;
 import org.hibernate.HibernateException;
-import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
