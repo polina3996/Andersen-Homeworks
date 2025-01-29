@@ -1,14 +1,11 @@
 package coworking;
 
-import coworking.databases.DAO.ReservationDAO;
-import coworking.databases.DAO.UserDAO;
-import coworking.databases.DAO.WorkspaceDAO;
-import coworking.databases.HibernateSessionUtil;
-import coworking.databases.service.ReservationService;
-import org.hibernate.Session;
+import coworking.config.AppConfig;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 
 import java.lang.reflect.Method;
-import java.util.Scanner;
+
 
 public class CoworkingSpaceReservationApp {
     public static void main(String[] args)  {
@@ -26,19 +23,14 @@ public class CoworkingSpaceReservationApp {
             System.out.println("Class loading has gone wrong" + e.getMessage());
         }
 
-        Scanner scanner = new Scanner(System.in);
-        Session session = HibernateSessionUtil.getSessionFactory().openSession();
-        WorkspaceDAO workspaceDAO = new WorkspaceDAO(session);
-        ReservationDAO reservationDAO = new ReservationDAO(session);
-        ReservationService reservationService = new ReservationService(session);
-        UserDAO userDAO = new UserDAO(session);
+        ApplicationContext context = new AnnotationConfigApplicationContext(AppConfig.class);
 
-        MainMenu mainMenu = new MainMenu(scanner, workspaceDAO, reservationDAO, reservationService, userDAO);
+
+        MainMenu mainMenu = context.getBean(MainMenu.class);
         do {
             mainMenu.showMainMenu();
         } while (mainMenu.processUserInput());
 
-        scanner.close();
-        session.close();
+        ((AnnotationConfigApplicationContext) context).close();
     }
 }

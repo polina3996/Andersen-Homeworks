@@ -13,8 +13,8 @@
         <property name="hibernate.format_sql">true</property>
         <property name="hibernate.hbm2ddl.auto">update</property>
 
-        <mapping class="coworking.databases.models.Workspace"/>
-        <mapping class="coworking.databases.models.User"/>
-        <mapping class="coworking.databases.models.Reservation"/>
+        <mapping class="coworking.model.Workspace"/>
+        <mapping class="coworking.model.User"/>
+        <mapping class="coworking.model.Reservation"/>
     </session-factory>
 </hibernate-configuration>

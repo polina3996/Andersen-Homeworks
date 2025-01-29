@@ -1,16 +1,15 @@
 package coworking;
-import coworking.databases.DAO.ReservationDAO;
-import coworking.databases.DAO.UserDAO;
-import coworking.databases.DAO.WorkspaceDAO;
-import coworking.databases.models.Reservation;
-import coworking.databases.models.User;
-import coworking.databases.models.Workspace;
-import coworking.databases.service.ReservationService;
+import coworking.controller.CustomerController;
+import coworking.repository.ReservationRepository;
+import coworking.repository.WorkspaceRepository;
+import coworking.model.Reservation;
+import coworking.model.User;
+import coworking.model.Workspace;
+import coworking.service.ReservationService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.*;
 
-import java.sql.SQLException;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
@@ -21,14 +20,16 @@ import static org.junit.Assert.assertNotNull;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
 
-public class CustomerTest {
-    private Customer customer;
+public class CustomerControllerTest {
+    private CustomerController customerController;
+    @Captor
+    ArgumentCaptor<Workspace> workspaceCaptor;
     @Mock
     private Scanner mockScanner;
     @Mock
-    private WorkspaceDAO mockWorkspaceDAO;
+    private WorkspaceRepository mockWorkspaceRepository;
     @Mock
-    private ReservationDAO mockReservationDAO;
+    private ReservationRepository mockReservationRepository;
     @Mock
     private ReservationService mockReservationService;
     @Mock
@@ -38,7 +39,7 @@ public class CustomerTest {
     @BeforeEach
     void setUp() {
         MockitoAnnotations.openMocks(this);
-        customer = new Customer(mockScanner, mockWorkspaceDAO, mockReservationDAO, mockReservationService, mockUserDAO);
+        customerController = new CustomerController(mockScanner, mockWorkspaceRepository, mockReservationRepository, mockReservationService);
     }
 
     @Test
@@ -51,13 +52,13 @@ public class CustomerTest {
 
         List<Workspace> emptyWorkspaces = Collections.emptyList();
 
-        when(mockWorkspaceDAO.findAvailableWorkspaces())
+        when(mockWorkspaceRepository.findAvailableWorkspaces())
                 .thenReturn(workspaces)
                 .thenReturn(emptyWorkspaces);
 
         // When
-        List<Workspace> result1 = customer.browseAvailableSpaces();
-        List<Workspace> result2 = customer.browseAvailableSpaces();
+        List<Workspace> result1 = customerController.browseAvailableSpaces();
+        List<Workspace> result2 = customerController.browseAvailableSpaces();
 
         // Then
         assertNotNull(result1);
@@ -65,7 +66,7 @@ public class CustomerTest {
         assertEquals("Art", result1.get(0).getType());
         assertTrue(result2.isEmpty());
 
-        verify(mockWorkspaceDAO, times(2)).findAvailableWorkspaces();
+        verify(mockWorkspaceRepository, times(2)).findAvailableWorkspaces();
     }
 
 
@@ -78,7 +79,7 @@ public class CustomerTest {
                     new Workspace("Tech", 40.0)
             );
 
-            when(mockWorkspaceDAO.findAvailableWorkspaces()).thenReturn(workspaces);
+            when(mockWorkspaceRepository.findAvailableWorkspaces()).thenReturn(workspaces);
 
             mockedCheckMethods
                     .when(() -> CheckMethods.checkDate(anyString(), anyString()))
@@ -103,7 +104,7 @@ public class CustomerTest {
                     .thenReturn("03-03-2025")
                     .thenReturn("05-03-2025");
             // When
-            customer.makeAReservation();
+            customerController.makeAReservation();
 
             // Then
             verify(mockScanner, times(2)).nextInt();
@@ -134,13 +135,13 @@ public class CustomerTest {
 
         when(mockScanner.next()).thenReturn("John");
 
-        when(mockReservationDAO.findMyReservations("John"))
+        when(mockReservationRepository.findMyReservations("John"))
                 .thenReturn(reservations)
                 .thenReturn(emptyReservations);
 
         // When
-        List<Reservation> result1 = customer.viewMyReservations();
-        List<Reservation> result2 = customer.viewMyReservations();
+        List<Reservation> result1 = customerController.viewMyReservations();
+        List<Reservation> result2 = customerController.viewMyReservations();
 
         // Then
         assertNotNull(result1);
@@ -149,7 +150,7 @@ public class CustomerTest {
         assertEquals("Tech", result1.get(1).getWorkspace().getType());
         assertTrue(result2.isEmpty());
 
-        verify(mockReservationDAO, times(2)).findMyReservations("John");
+        verify(mockReservationRepository, times(2)).findMyReservations("John");
     }
 
     @Test
@@ -171,19 +172,19 @@ public class CustomerTest {
 
         when(mockScanner.next()).thenReturn("John");
 
-        when(mockReservationDAO.findMyReservations("John")).thenReturn(reservations);
+        when(mockReservationRepository.findMyReservations("John")).thenReturn(reservations);
 
         when(mockScanner.nextInt())
                     .thenThrow(new InputMismatchException())
                     .thenReturn(0);
 
         // When
-        customer.cancelMyReservation();
+        customerController.cancelMyReservation();
 
         // Then
         verify(mockScanner, times(2)).nextInt();
         verify(mockScanner, times(1)).next();
-        verify(mockReservationService, times(1)).cancelMyReservation(reservations.get(0));
+        verify(mockReservationService, times(1)).removeReservation(reservations.get(0));
 
     }
     }

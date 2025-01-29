@@ -47,6 +47,16 @@
             <artifactId>hibernate-core</artifactId>
             <version>6.6.5.Final</version>
         </dependency>
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-context</artifactId>
+            <version>6.2.2</version>
+        </dependency>
+        <dependency>
+            <groupId>coworking</groupId>
+            <artifactId>coworking-spaces</artifactId>
+            <version>1.0.0</version>
+        </dependency>
     </dependencies>
 
     <build><plugins>
