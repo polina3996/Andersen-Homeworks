@@ -1,6 +1,10 @@
 package coworking;
 
-import coworking.databases.DB;
+
+import coworking.databases.DAO.ReservationDAO;
+import coworking.databases.DAO.UserDAO;
+import coworking.databases.DAO.WorkspaceDAO;
+import coworking.databases.service.ReservationService;
 
 import java.sql.Connection;
 import java.sql.SQLException;
@@ -11,13 +15,19 @@ import java.util.Scanner;
  */
 public class MainMenu {
     Scanner scanner;
-    DB db;
-    //FileSaverReader fileSaverReader;
+    private final WorkspaceDAO workspaceDAO;
+    private final ReservationDAO reservationDAO;
+    private final ReservationService reservationService;
+    private final UserDAO userDAO;
 
-    public MainMenu(Scanner scanner, DB db){
+
+
+    public MainMenu(Scanner scanner, WorkspaceDAO workspaceDAO, ReservationDAO reservationDAO, ReservationService reservationService, UserDAO userDAO){
         this.scanner = scanner;
-        this.db = db;
-        //this.fileSaverReader = new FileSaverReader();
+        this.workspaceDAO = workspaceDAO;
+        this.reservationDAO = reservationDAO;
+        this.reservationService = reservationService;
+        this.userDAO = userDAO;
     }
 
     public void showMainMenu() {
@@ -57,7 +67,7 @@ public class MainMenu {
 
             int adminOption = this.scanner.nextInt();
 
-            Admin admin = new Admin(this.db, this.scanner);
+            Admin admin = new Admin(this.scanner, this.workspaceDAO, this.reservationDAO, this.reservationService, this.userDAO);
             if (adminOption == 1) {
                 admin.addCoworkingSpace();
             }
@@ -88,7 +98,7 @@ public class MainMenu {
                 """);
 
             int userOption = this.scanner.nextInt();
-            Customer customer = new Customer(this.db, this.scanner);
+            Customer customer = new Customer(this.scanner, this.workspaceDAO, this.reservationDAO, this.reservationService, this.userDAO);
 
             if (userOption ==1) {
                 customer.browseAvailableSpaces();

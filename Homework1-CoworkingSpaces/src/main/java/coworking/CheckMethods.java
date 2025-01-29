@@ -5,17 +5,18 @@ import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
+import java.util.List;
 
 public class CheckMethods {
     /**
-     * Checks whether the given ArrayList is empty or not or throws custom exception
-     * @param arr: ArrayList(Coworking Spaces or Reservations)
+     * Checks whether the given List is empty or not or throws custom exception
+     * @param lst: List(Workspaces or Reservations)
      * @param name: name of given parameter("coworking spaces" or "reservations")
      * @return boolean
      */
-    public static <T> boolean checkEmptiness(ArrayList<T> arr, String name) {
+    public static <T> boolean checkEmptiness(List<T> lst, String name) {
         String message = String.format("There are no %s yet", name);
-        if (arr == null || arr.isEmpty()) {
+        if (lst == null || lst.isEmpty()) {
             throw new CheckEmptinessException(message);
         }
        return false;

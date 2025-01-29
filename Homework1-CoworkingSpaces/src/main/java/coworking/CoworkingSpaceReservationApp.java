@@ -1,11 +1,13 @@
 package coworking;
 
-import coworking.databases.ConnectionException;
-import coworking.databases.DB;
+import coworking.databases.DAO.ReservationDAO;
+import coworking.databases.DAO.UserDAO;
+import coworking.databases.DAO.WorkspaceDAO;
+import coworking.databases.HibernateSessionUtil;
+import coworking.databases.service.ReservationService;
+import org.hibernate.Session;
 
 import java.lang.reflect.Method;
-import java.sql.Connection;
-import java.sql.SQLException;
 import java.util.Scanner;
 
 public class CoworkingSpaceReservationApp {
@@ -25,13 +27,18 @@ public class CoworkingSpaceReservationApp {
         }
 
         Scanner scanner = new Scanner(System.in);
-        DB db = new DB();
+        Session session = HibernateSessionUtil.getSessionFactory().openSession();
+        WorkspaceDAO workspaceDAO = new WorkspaceDAO(session);
+        ReservationDAO reservationDAO = new ReservationDAO(session);
+        ReservationService reservationService = new ReservationService(session);
+        UserDAO userDAO = new UserDAO(session);
 
-        MainMenu mainMenu = new MainMenu(scanner, db);
+        MainMenu mainMenu = new MainMenu(scanner, workspaceDAO, reservationDAO, reservationService, userDAO);
         do {
             mainMenu.showMainMenu();
         } while (mainMenu.processUserInput());
 
         scanner.close();
+        session.close();
     }
 }
