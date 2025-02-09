@@ -1,6 +1,7 @@
 package coworking;
 import coworking.controller.CustomerController;
 import coworking.repository.ReservationRepository;
+import coworking.repository.UserRepository;
 import coworking.repository.WorkspaceRepository;
 import coworking.model.Reservation;
 import coworking.model.User;
@@ -33,13 +34,13 @@ public class CustomerControllerTest {
     @Mock
     private ReservationService mockReservationService;
     @Mock
-    private UserDAO mockUserDAO;
+    private UserRepository mockUserRepository;
 
 
     @BeforeEach
     void setUp() {
         MockitoAnnotations.openMocks(this);
-        customerController = new CustomerController(mockScanner, mockWorkspaceRepository, mockReservationRepository, mockReservationService);
+        customerController = new CustomerController(mockScanner, mockWorkspaceRepository, mockReservationRepository, mockReservationService, mockUserRepository);
     }
 
     @Test
@@ -109,7 +110,7 @@ public class CustomerControllerTest {
             // Then
             verify(mockScanner, times(2)).nextInt();
             verify(mockScanner, times(3)).next();
-            verify(mockReservationService, times(1)).makeReservation(mockUserDAO, workspaces.get(0), "John", "03-03-2025", "05-03-2025");
+            verify(mockReservationService, times(1)).makeReservation(mockUserRepository, workspaces.get(0), "John", "03-03-2025", "05-03-2025");
             mockedCheckMethods.verify(() -> CheckMethods.checkDate(anyString(), anyString()), times(2));
         }
     }

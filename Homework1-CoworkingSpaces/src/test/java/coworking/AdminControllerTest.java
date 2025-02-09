@@ -1,6 +1,7 @@
 package coworking;
 import coworking.controller.AdminController;
 import coworking.repository.ReservationRepository;
+import coworking.repository.UserRepository;
 import coworking.repository.WorkspaceRepository;
 import coworking.model.Reservation;
 import coworking.model.User;
@@ -26,13 +27,13 @@ class AdminControllerTest {
     @Mock private WorkspaceRepository mockWorkspaceRepository;
     @Mock private ReservationRepository mockReservationRepository;
     @Mock private ReservationService mockReservationService;
-    @Mock private UserDAO mockUserDAO;
+    @Mock private UserRepository mockUserRepository;
 
 
     @BeforeEach
     void setUp() {
         MockitoAnnotations.openMocks(this);
-        adminController = new AdminController(mockScanner, mockWorkspaceRepository, mockReservationRepository, mockReservationService);
+        adminController = new AdminController(mockScanner, mockWorkspaceRepository, mockReservationRepository, mockReservationService, mockUserRepository);
     }
 
     @Test
